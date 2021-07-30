@@ -1,0 +1,11 @@
+
+Kubernetes setup video
+
+https://www.youtube.com/watch?v=2Tr7hNW02fg
+
+Created 3 VMs - Server with GUI
+	k-master	10.1.1.200	4 Meg Ram 100G HD	2 cpu
+	k-node-1	10.1.1.201	4 Meg Ram 100G HD	2 cpu
+	k-node-2	10.1.1.202	4 Meg Ram 100G HD	2 cpu
+	
+Video starting @ 4:30	
