@@ -124,11 +124,11 @@ repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
 
-    # It is known that kube* currently don't play well with SELinux, so disable SELinux
+    # It is known that kube* applications currently don't play well with SELinux, so disable SELinux
     setenforce 0
 
-    yum install -y docker kubelet kubeadm kubectl kubernetes-cni
-    systemctl enable docker && systemctl start docker
+    yum install -y kubelet kubeadm kubectl kubernetes-cni
+    #yum install -y --allowerasing --nobest kubelet kubeadm kubectl kubernetes-cni
     systemctl enable kubelet && systemctl start kubelet
 
 
@@ -190,8 +190,8 @@ EOF
 PerformUpdate
 ConfigureFirewall
 SetHostNames
-InstallPodman
+# InstallPodman
 # InstallDocker # << CentOS, Rocky not happy with Docker
 
-# InstallKubernetes
+InstallKubernetes
 
