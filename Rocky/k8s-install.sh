@@ -100,10 +100,11 @@ function InstallPodman
 # ====================================================================================
 #
 function InstallDocker
-
+{
     # Install and start Docker
     dnf -y install docker
     systemctl enable docker && systemctl start docker
+}
 # ------------------------------------------------------------------------
 
 # ====================================================================================
