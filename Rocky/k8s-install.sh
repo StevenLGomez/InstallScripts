@@ -21,9 +21,6 @@
 # Make a record of the kubeadm_join command output.  It is needed later.
 
 
-
-
-
 # ====================================================================================
 # Normal update...
 function PerformUpdate
@@ -112,6 +109,7 @@ function InstallDocker
 #       https://unofficial-kubernetes.readthedocs.io/en/latest/getting-started-guides/kubeadm/ (for kubeadm steps)
 #
 function InstallKubernetes
+{
 
 # Create yum repository file - NOTE: must begin at column 1
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
@@ -148,6 +146,7 @@ EOF
 #    swapoff -a
 #    vi /etc/fstab
 
+}
 # ------------------------------------------------------------------------
 
 
