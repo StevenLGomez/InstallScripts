@@ -190,8 +190,8 @@ EOF
 PerformUpdate
 ConfigureFirewall
 SetHostNames
-# InstallPodman
+InstallPodman
 # InstallDocker # << CentOS, Rocky not happy with Docker
 
-InstallKubernetes
+# InstallKubernetes
 
