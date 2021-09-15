@@ -26,6 +26,8 @@
 function PerformUpdate
 {
     dnf -y update
+
+    dnf -y install curl
 }
 # ------------------------------------------------------------------------
 
@@ -34,6 +36,7 @@ function PerformUpdate
 #
 function ConfigureFirewall
 {
+    echo 'Starting firewall configuration'
     firewall-cmd --permanent --add-port=6443/tcp
     firewall-cmd --permanent --add-port=2379-2380/tcp
     firewall-cmd --permanent --add-port=10250/tcp
@@ -46,6 +49,7 @@ function ConfigureFirewall
 
     modprobe br_netfilter
     systemctl restart firewalld
+    echo 'Firewall configuration completed'
 }
 # ------------------------------------------------------------------------
 
@@ -105,17 +109,15 @@ function InstallDocker
 # ------------------------------------------------------------------------
 
 # ====================================================================================
-# From: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/ (for repository file contents)
-#       https://unofficial-kubernetes.readthedocs.io/en/latest/getting-started-guides/kubeadm/ (for kubeadm steps)
+# From: https://unofficial-kubernetes.readthedocs.io/en/latest/getting-started-guides/kubeadm/ (for kubeadm steps)
 #
 function InstallKubernetes
 {
 
-# Create yum repository file - NOTE: must begin at column 1
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
-baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+baseurl=http://yum.kubernetes.io/repos/kubernetes-el7-x86_64
 enabled=1
 gpgcheck=1
 repo_gpgcheck=1
@@ -125,15 +127,50 @@ EOF
     # It is known that kube* currently don't play well with SELinux, so disable SELinux
     setenforce 0
 
-    # Install Kubernetes pieces, then start it
-    yum install -y kubelet kubeadm kubectl kubernetes-cni
+    yum install -y docker kubelet kubeadm kubectl kubernetes-cni
+    systemctl enable docker && systemctl start docker
     systemctl enable kubelet && systemctl start kubelet
+
+
+
+
+
+
+## Create yum repository file - NOTE: must begin at column 1
+#cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+#[kubernetes]
+#name=Kubernetes
+#baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+#enabled=1
+#gpgcheck=1
+#repo_gpgcheck=1
+#gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+#EOF
+
+#    # Download the latest stable release
+#    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+#
+#    # Validate the binary (Should output  kubectl: OK) Make sure to use the same version as above.
+#    curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+#    echo "$(<kubectl.sha256) kubectl" | sha256sum --check
+#
+#    # Install the downloaded kubectl
+#    install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+#
+#    # Test to ensure the version you installed is up to date
+#    kubectl version --client
+#
+#    # Check operation & configuration
+#    kubectl cluster-info
+#
+
+
+    # Install Kubernetes pieces, then start it
+    #yum install -y kubelet kubeadm kubectl kubernetes-cni
+    #systemctl enable kubelet && systemctl start kubelet
 
     # "It needs a kubeconfig file" which is created when you create a cluster using kube-up.sh.
     # See ~/.kube/config
-
-    # Check operation & configuration
-    kubectl cluster-info
 
 #    TBD .....
 #    systemctl enable --now kubelet
@@ -153,8 +190,8 @@ EOF
 PerformUpdate
 ConfigureFirewall
 SetHostNames
-# InstallPodman
-InstallDocker
+InstallPodman
+# InstallDocker # << CentOS, Rocky not happy with Docker
 
 # InstallKubernetes
 
