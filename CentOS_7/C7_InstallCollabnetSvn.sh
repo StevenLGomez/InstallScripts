@@ -37,6 +37,8 @@
 #
 # MD5SUM of CollabNet Installer: 0862eaba2dd1b048dc6c10cb2b1e910b <= Does not match downloaded package !!
 # 
+# 20210920
+# Had issues with JAVA_HOME  finally settled in on JAVA_HOME=/usr/lib/jvm/jre-openjdk
 
 # ========================================================================
 # Variable definitions
