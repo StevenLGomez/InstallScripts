@@ -1,0 +1,36 @@
+
+# Notes conderning (attempted) instllation of Kubernetes on Ubuntu 20.4 Server
+# Using VMs
+
+# k-master        10.1.1.200
+# k-node01        10.1.1.201
+# k-node02        10.1.1.202
+
+CPU	4
+Memory	4GB
+HD 	300 GB thin
+
+Network	E1000e
+
+Ubuntu Network setup:
+Subnet:	10.1.1.0/24
+Address	10.1.1.xxx
+Gateway	10.1.1.1
+NS	10.1.1.1
+Domain	gomezengineering.lan
+
+Profile:
+Developer
+k-master
+developer
+pwd
+pwd
+
+Install OpenSSH server
+
+Install no Apps
+
+Off & running.....
+
+
+
