@@ -100,6 +100,7 @@ systemctl enable --now kubelet
 systemctl start kubelet
 
 # STEP 7 - Create Cluster
+# See: https://subnetcalculator.info/CidrCalculator
 # X.X.X.115/20 gives CIDR range of X.X.X.112 through 119
 sudo kubeadm init --pod-network-cidr=192.168.0.0/16    # <<< !!  need CIDR for current network !!
 
