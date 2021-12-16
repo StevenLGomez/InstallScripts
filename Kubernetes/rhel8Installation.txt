@@ -12,14 +12,17 @@ k-node01  10.17.20.116
 k-node02  10.17.20.117
 
 Parallel in ESXi, using Rocky 8 created:
-rk-master  10.1.1.115 Server with GUI + Container Management
-rk-node01  10.1.1.116
-rk-node02  10.1.1.117
+rk-master  10.1.1.115 Server with GUI + (Container Management optional, omitted here)
+rk-node01  10.1.1.116 Minimal
+rk-node02  10.1.1.117 Minimal
 
 https://graspingtech.com/install-kubernetes-rhel-8/
 Kubernetes v1.21.2
 CRI-O v1.21.1
 Calico
+
+# STEP 0 - Perform an update
+dnf -y update
 
 # STEP 1 - Disable Swap
 swapoff -a
@@ -27,9 +30,9 @@ Edit /etc/fstab - comment out swap line
 
 # STEP 2 - Configure the Network
 Edit /etc/hosts - Include all three systems
-10.1.1.200  rk-master
-10.1.1.201  rk-node01
-10.1.1.202  rk-node02
+10.1.1.115  rk-master
+10.1.1.116  rk-node01
+10.1.1.117  rk-node02
 
 dnf install -y iproute-tc
 # Configure iptables to see bridged traffic
@@ -72,6 +75,8 @@ firewall-cmd --reload
 setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
+https://v1-21.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+
 # STEP 5 - Install CRI-O 
 export VERSION=1.21
 curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_8/devel:kubic:libcontainers:stable.repo
@@ -81,7 +86,10 @@ dnf install -y cri-o
 systemctl enable --now cri-o
 systemctl start cri-o
 
+# =====================================================================
 # STEP 6 - Install Kubernetes
+
+# Using Package Management
 cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -95,9 +103,34 @@ EOF
 
 yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
 
+# Alternate using CURL Kubernetes v1.21.2
+# For latest release: curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                      curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+
+# For kubectl v1.21.2
+curl -LO https://dl.k8s.io/release/v1.21.2/bin/linux/amd64/kubectl
+curl -LO "https://dl.k8s.io/v1.21.2/bin/linux/amd64/kubectl.sha256"
+
+# Confirm sha
+echo "$(<kubectl.sha256) kubectl" | sha256sum --check
+
+install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+#yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+
 # Enable & start kubelet service
 systemctl enable --now kubelet
 systemctl start kubelet
+
+
+
+
+
+
+
+
+
+
+
 
 # STEP 7 - Create Cluster
 # See: https://subnetcalculator.info/CidrCalculator
