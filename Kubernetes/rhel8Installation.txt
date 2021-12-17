@@ -35,6 +35,7 @@ Edit /etc/hosts - Include all three systems
 10.1.1.117  rk-node02
 
 dnf install -y iproute-tc
+
 # Configure iptables to see bridged traffic
 # Create the .conf file to load the modules at bootup
 cat <<EOF | tee /etc/modules-load.d/k8s.conf
@@ -78,9 +79,9 @@ sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 https://v1-21.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 
 # STEP 5 - Install CRI-O 
-export VERSION=1.21
+export CRIO_VERSION=1.21
 curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_8/devel:kubic:libcontainers:stable.repo
-curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/CentOS_8/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo
+curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION/CentOS_8/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION.repo
 dnf install -y cri-o
 
 systemctl enable --now cri-o
@@ -102,40 +103,85 @@ exclude=kubelet kubeadm kubectl
 EOF
 
 yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+# =====================================================================
+export K8S_VERSION=v1.21.2
 
 # Alternate using CURL Kubernetes v1.21.2
 # For latest release: curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                      curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+#                     curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
 
-# For kubectl v1.21.2
-curl -LO https://dl.k8s.io/release/v1.21.2/bin/linux/amd64/kubectl
-curl -LO "https://dl.k8s.io/v1.21.2/bin/linux/amd64/kubectl.sha256"
-
-# Confirm sha
-echo "$(<kubectl.sha256) kubectl" | sha256sum --check
-
+# kubectl
+curl -LO https://dl.k8s.io/release/$K8S_VERSION/bin/linux/amd64/kubectl
+curl -LO "https://dl.k8s.io/$K8S_VERSION/bin/linux/amd64/kubectl.sha256"
+echo "$(<kubectl.sha256) kubectl" | sha256sum --check   # Confirms sha, should show OK
 install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-#yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+
+# kubeadm
+curl -LO https://dl.k8s.io/release/$K8S_VERSION/bin/linux/amd64/kubeadm
+curl -LO "https://dl.k8s.io/$K8S_VERSION/bin/linux/amd64/kubeadm.sha256"
+echo "$(<kubeadm.sha256) kubeadm" | sha256sum --check   # Confirms sha, should show OK
+install -o root -g root -m 0755 kubeadm /usr/local/bin/kubeadm
+
+# kubelet
+curl -LO https://dl.k8s.io/release/$K8S_VERSION/bin/linux/amd64/kubelet
+curl -LO "https://dl.k8s.io/$K8S_VERSION/bin/linux/amd64/kubelet.sha256"
+echo "$(<kubelet.sha256) kubelet" | sha256sum --check   # Confirms sha, should show OK
+install -o root -g root -m 0755 kubelet /usr/local/bin/kubelet
+
+# Create HERE Doc for kubelet.service
+cat <<EOF | tee /etc/systemd/system/kubelet.service
+# Contents lifted from RHEL 8 installation
+[Unit]
+Description=kubelet: The Kubernetes Node Agent
+Documentation=https://kubernetes.io/docs/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+# ExecStart=/usr/bin/kubelet # RHEL 8 Location (From repository method)
+ExecStart=/usr/local/bin/kubelet # Rocky 8 Location (From curl method)
+Restart=always
+StartLimitInterval=0
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+
 
 # Enable & start kubelet service
 systemctl enable --now kubelet
 systemctl start kubelet
+journalctl -xeu kubelet
 
 
 
 
+# crictl missing !
+#curl -LO https://github.com/kubernetes-sigs/cri-tools/releases/crictl-v1.21.0-linux-amd64.tar.gz
+#curl -LO https://github.com/kubernetes-sigs/cri-tools/releases/crictl-v1.21.0-linux-amd64.tar.gz.sha256
+#echo "$(<crictl-v1.21.0-linux-amd64.tar.gz.sha256) crictl-v1.21.0-linux-amd64.tar.gz" | sha256sum --check   # Confirms sha, should show OK
+dnf -y install crictl
 
 
 
 
+kubeadm init 
+--ignore-preflight-errors=FileExisting-conntrack
 
-
+kubeadm config images pull
 
 
 # STEP 7 - Create Cluster
 # See: https://subnetcalculator.info/CidrCalculator
 # X.X.X.115/20 gives CIDR range of X.X.X.112 through 119
-sudo kubeadm init --pod-network-cidr=192.168.0.0/16    # <<< !!  need CIDR for current network !!
+# kubeadm init --pod-network-cidr=192.168.0.0/16    # <<< !!  need CIDR for current network !!
+# kubeadm init --pod-network-cidr=10.17.20.115/20    # <<< For biomerieux 
+kubeadm init --pod-network-cidr=10.1.1.115/20      # <<< For gesllc 
+
+kubeadm init --pod-network-cidr=10.1.1.115/20 --ignore-preflight-errors=FileExisting-conntrack
+
 
 # AS admin user - Make kubectl work for current user
 mkdir -p $HOME/.kube
@@ -152,7 +198,9 @@ kubectl create -f https://docs.projectcalico.org/manifests/custom-resources.yaml
 # See if pods have started
 watch kubectl get pods -n calico-system
 
-
+# Install the Dashboard
+# https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.4.0/aio/deploy/recommended.yaml
 
 
 
