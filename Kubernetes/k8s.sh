@@ -22,7 +22,7 @@ K8S_VERSION=v1.21.2
 
 # #############################################################################
 #
-PerformUpdate
+function PerformUpdate
 {
     echo "Function: PerformUpdate starting (STEP 0)"
     dnf -y update
@@ -32,7 +32,7 @@ PerformUpdate
 
 # #############################################################################
 #
-DisableSwap
+function DisableSwap
 {
     echo "Function: DisableSwap starting (STEP 1)"
     swapoff -a
@@ -43,7 +43,7 @@ DisableSwap
 
 # #############################################################################
 #
-ConfigureNetwork
+function ConfigureNetwork
 {
     echo "Function: ConfigureNetwork starting (STEP 2)"
 
@@ -62,11 +62,11 @@ ConfigureNetwork
 	echo '10.1.1.116     rk-node01  rk-node01.gomezengineering.lan    # Kubernetes Worker 01' >> /etc/hosts
     fi
 
-    if grep -q rk-node01 /etc/hosts; then
-    echo "rk-node01 entry already exists in /etc/hosts (skipping)"
+    if grep -q rk-node02 /etc/hosts; then
+    echo "rk-node02 entry already exists in /etc/hosts (skipping)"
     else
-	echo "Adding rk-node01 to /etc/hosts (ESXi Server)"
-	echo '10.1.1.117     rk-node01  rk-node01.gomezengineering.lan    # Kubernetes Worker 02' >> /etc/hosts
+	echo "Adding rk-node02 to /etc/hosts (ESXi Server)"
+	echo '10.1.1.117     rk-node02  rk-node02.gomezengineering.lan    # Kubernetes Worker 02' >> /etc/hosts
     fi
 
     # Configure iptables to see bridged traffic
@@ -95,7 +95,7 @@ EOF
 # #############################################################################
 # TODO The worker nodes may not need all of these ports opened
 #
-ConfigureFirewall
+function ConfigureFirewall
 {
     echo "Function: ConfigureFirewall starting (STEP 3)"
 
@@ -125,7 +125,7 @@ ConfigureFirewall
 
 # #############################################################################
 #
-DisableSELinux
+function DisableSELinux
 {
     echo "Function: DisableSELinux starting (STEP 4)"
 
@@ -138,7 +138,7 @@ DisableSELinux
 
 # #############################################################################
 #
-InstallCRI-O
+function InstallCRI-O
 {
     echo "Function: InstallCRI-O starting (STEP 5)"
 
@@ -159,7 +159,7 @@ InstallCRI-O
 # #############################################################################
 # https://v1-21.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 #
-InstallKubernetes
+function InstallKubernetes
 {
     echo "Function: InstallKubernetes starting (STEP 6)"
 
@@ -235,7 +235,7 @@ EOF
 
 # #############################################################################
 #
-CreateCluster
+function CreateCluster
 {
     echo "Function: CreateCluster starting (STEP 7)"
     
@@ -248,7 +248,7 @@ CreateCluster
 # #############################################################################
 # https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
 #
-InstallDashboard
+function InstallDashboard
 {
     echo "Function: InstallDashboard starting (STEP 8)"
     
@@ -260,7 +260,7 @@ InstallDashboard
 
 # #############################################################################
 #
-Spare Function
+function Spare_Function
 {
     echo "Function: ZOT starting (STEP 1)"
     
