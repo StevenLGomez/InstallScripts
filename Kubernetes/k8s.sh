@@ -260,6 +260,25 @@ function InstallDashboard
 
 # #############################################################################
 #
+function ShowServerSpecifications
+{
+    echo "#############################################################################"
+    echo "Basic specifications of this machine:"
+    echo "Memory:"
+    free -h
+
+    echo "Disk space:"
+    df -hT
+
+    echo "CPU Cores:"
+    egrep ^processor /proc/cpuinto | wc -l
+
+    echo "#############################################################################"
+}
+# -----------------------------------------------------------------------------
+
+# #############################################################################
+#
 function Spare_Function
 {
     echo "Function: ZOT starting (STEP 1)"
@@ -285,6 +304,7 @@ InstallKubernetes
 CreateCluster
 InstallDashboard
 
+ShowServerSpecifications
 
 
 
