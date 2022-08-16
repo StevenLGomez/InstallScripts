@@ -1,0 +1,60 @@
+
+Installation steps to support Manning Live Project - Beginning Kubernetes
+
+Use Ubuntu Desktop 22.04.1
+
+
+Node JS
+	Installed from Ubuntu Software
+
+	sudo apt update
+	sudo apt install nodejs
+	node -v   <- Reports v12.22.9
+
+Docker
+	From: https://docs.docker.com/engine/install/ubuntu/
+
+	# Setup repository
+	sudo apt-get update
+	sudo apt-get install ca-certificates curl gnupg lsb-release
+
+	# Add Docker's official GPG key
+	sudo mkdir -p /etc/apt/keyrings
+	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+	# Use the following command to set up the repository:
+	echo \
+	  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+	  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+	# Install Docker Engine
+	sudo apt-get update
+	sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+Git
+	apt-get install git
+
+VS Code
+	Installed from Ubuntu Software Center
+
+	sudo apt update && sudo apt upgrade -y
+	sudo apt install software-properties-common apt-transport-https wget -y
+	wget -O- https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor | sudo tee /usr/share/keyrings/vscode.gpg
+
+	# Command above trashed tty output. Rebooted, okey dokey.
+
+	echo deb [arch=amd64 signed-by=/usr/share/keyrings/vscode.gpg] https://packages.microsoft.com/repos/vscode stable main | sudo tee /etc/apt/sources.list.d/vscode.list
+
+	sudo apt update
+
+	sudo apt install code
+
+	code &
+
+	-- OR -- Install from Snap Store
+	sudo snap install code
+
+	# If snap is not already installed:
+	sudo apt install snapd
+
+
