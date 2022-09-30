@@ -245,8 +245,6 @@ RestartSec=10
 WantedBy=multi-user.target
 EOF
 
-    dnf -y install crictl
-
     # Enable & start kubelet service
     systemctl enable --now kubelet
     systemctl start kubelet
