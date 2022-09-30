@@ -48,26 +48,52 @@ function ConfigureNetwork
     echo "Function: ConfigureNetwork starting (STEP 2)"
 
     # Update /etc/hosts
-    if grep -q rk-master /etc/hosts; then
-    echo "rk-master entry already exists in /etc/hosts (skipping)"
+
+    # GESLLC updates
+#    if grep -q rk-master /etc/hosts; then
+#    echo "rk-master entry already exists in /etc/hosts (skipping)"
+#    else
+#	echo "Adding rk-master to /etc/hosts (ESXi Server)"
+#	echo '10.1.1.115     rk-master  rk-master.gomezengineering.lan    # Kubernetes Master' >> /etc/hosts
+#    fi
+#
+#    if grep -q rk-node01 /etc/hosts; then
+#    echo "rk-node01 entry already exists in /etc/hosts (skipping)"
+#    else
+#	echo "Adding rk-node01 to /etc/hosts (ESXi Server)"
+#	echo '10.1.1.116     rk-node01  rk-node01.gomezengineering.lan    # Kubernetes Worker 01' >> /etc/hosts
+#    fi
+#
+#    if grep -q rk-node02 /etc/hosts; then
+#    echo "rk-node02 entry already exists in /etc/hosts (skipping)"
+#    else
+#	echo "Adding rk-node02 to /etc/hosts (ESXi Server)"
+#	echo '10.1.1.117     rk-node02  rk-node02.gomezengineering.lan    # Kubernetes Worker 02' >> /etc/hosts
+#    fi
+
+    # vCenter updates
+    if grep -q k-master /etc/hosts; then
+    echo "k-master entry already exists in /etc/hosts (skipping)"
     else
-	echo "Adding rk-master to /etc/hosts (ESXi Server)"
-	echo '10.1.1.115     rk-master  rk-master.gomezengineering.lan    # Kubernetes Master' >> /etc/hosts
+	echo "Adding k-master to /etc/hosts (ESXi Server)"
+	echo '10.17.20.115     k-master  k-master.corp.internal    # Kubernetes Master' >> /etc/hosts
     fi
 
-    if grep -q rk-node01 /etc/hosts; then
-    echo "rk-node01 entry already exists in /etc/hosts (skipping)"
+    if grep -q k-node01 /etc/hosts; then
+    echo "k-node01 entry already exists in /etc/hosts (skipping)"
     else
-	echo "Adding rk-node01 to /etc/hosts (ESXi Server)"
-	echo '10.1.1.116     rk-node01  rk-node01.gomezengineering.lan    # Kubernetes Worker 01' >> /etc/hosts
+	echo "Adding k-node01 to /etc/hosts (ESXi Server)"
+	echo '10.17.20.116     k-node01  k-node01.corp.internal    # Kubernetes Worker 01' >> /etc/hosts
     fi
 
-    if grep -q rk-node02 /etc/hosts; then
-    echo "rk-node02 entry already exists in /etc/hosts (skipping)"
+    if grep -q k-node02 /etc/hosts; then
+    echo "k-node02 entry already exists in /etc/hosts (skipping)"
     else
-	echo "Adding rk-node02 to /etc/hosts (ESXi Server)"
-	echo '10.1.1.117     rk-node02  rk-node02.gomezengineering.lan    # Kubernetes Worker 02' >> /etc/hosts
+	echo "Adding k-node02 to /etc/hosts (ESXi Server)"
+	echo '10.17.20.117     k-node02  k-node02.corp.internal    # Kubernetes Worker 02' >> /etc/hosts
     fi
+
+    dnf -y install iproute-tc
 
     # Configure iptables to see bridged traffic
     # Create the .conf file to load the modules at bootup
@@ -93,28 +119,25 @@ EOF
 # -----------------------------------------------------------------------------
 
 # #############################################################################
-# TODO The worker nodes may not need all of these ports opened
+# TODO Ports are believed to be correct, but may needs mods & optimizations
 #
 function ConfigureFirewall
 {
     echo "Function: ConfigureFirewall starting (STEP 3)"
 
-    # Open firewall ports
-    firewall-cmd --zone=public --add-service=kube-apiserver --permanent
-    firewall-cmd --zone=public --add-service=etcd-client --permanent
-    firewall-cmd --zone=public --add-service=etcd-server --permanent
+    # Master Node (Control Plane) ports
+    firewall-cmd --zone=public --add-service=kube-apiserver --permanent    # Kubernetes API Server (port 6443)
+    firewall-cmd --zone=public --add-service=etcd-client --permanent       # Kubernetes etcd Server API (port 2379)
+    firewall-cmd --zone=public --add-service=etcd-server --permanent       # Kubernetes etcd Server API (port 2379)
 
-    # kubelet API
-    firewall-cmd --zone=public --add-port=10250/tcp --permanent
+    firewall-cmd --zone=public --add-port=10251/tcp --permanent            # kube-scheduler
+    firewall-cmd --zone=public --add-port=10252/tcp --permanent            # kube-controller-manager
 
-    # kube-scheduler
-    firewall-cmd --zone=public --add-port=10251/tcp --permanent
+    # Needed by Master & Worker Nodes
+    firewall-cmd --zone=public --add-port=10250/tcp --permanent            # kubelet API
 
-    # kube-controller-manager
-    firewall-cmd --zone=public --add-port=10252/tcp --permanent
-
-    # NodePort Services
-    firewall-cmd --zone=public --add-port=30000-32767/tcp --permanent
+    # Worker Nodes only
+    firewall-cmd --zone=public --add-port=30000-32767/tcp --permanent      # NodePort Services
 
     # apply changes
     firewall-cmd --reload
