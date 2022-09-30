@@ -6,6 +6,7 @@
         <Project File="CentOS_7/CentOS_7.vpj"/>
         <Project File="CentOS_8/CentOS_8.vpj"/>
         <Project File="Fedora_31/Fedora_31.vpj"/>
+        <Project File="Kubernetes/Kubernetes.vpj"/>
         <Project File="LinuxMint/LinuxMint.vpj"/>
         <Project File="Rocky/Rocky.vpj"/>
     </Projects>

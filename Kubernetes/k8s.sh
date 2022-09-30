@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Reference websites
-# https://www.redhat.com/en/blog/introducing-cri-o-10  
+# https://www.redhat.com/en/blog/introducing-cri-o-10
 # https://access.redhat.com/containers/guide           << Openshift Introduction
-
+# https://access.redhat.com/documentation/en-us/openshift_container_platform/3.11/html/cri-o_runtime/use-crio-engine#get-crio-use-crio-engine
 # First pass of VMs created as:
 # CPU   4
 # RAM   8 GB
@@ -131,7 +131,7 @@ function DisableSELinux
 
     setenforce 0
     sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-    
+
     echo "Function: DisableSELinux complete (STEP 4)"
 }
 # -----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ function InstallCRI-O
 
     systemctl enable --now cri-o
     systemctl start cri-o
-    
+
     echo "Function: InstallCRI-O complete (STEP 5)"
 }
 # -----------------------------------------------------------------------------
@@ -238,7 +238,7 @@ EOF
 function CreateCluster
 {
     echo "Function: CreateCluster starting (STEP 7)"
-    
+
     kubeadm init --pod-network-cidr=10.1.1.115/20 --ignore-preflight-errors=FileExisting-conntrack
 
     echo "Function: CreateCluster complete (STEP 7)"
@@ -251,7 +251,7 @@ function CreateCluster
 function InstallDashboard
 {
     echo "Function: InstallDashboard starting (STEP 8)"
-    
+
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.4.0/aio/deploy/recommended.yaml
 
     echo "Function: InstallDashboard complete (STEP 8)"
@@ -282,7 +282,7 @@ function ShowServerSpecifications
 function Spare_Function
 {
     echo "Function: ZOT starting (STEP 1)"
-    
+
     echo "Function: ZOT complete (STEP 1)"
 }
 # -----------------------------------------------------------------------------
@@ -295,6 +295,7 @@ function Spare_Function
 # =============================================================================
 
 PerformUpdate
+
 DisableSwap
 ConfigureNetwork
 ConfigureFirewall
