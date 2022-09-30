@@ -160,7 +160,7 @@ function DisableSELinux
 # -----------------------------------------------------------------------------
 
 # #############################################################################
-#
+# Supporting information from: https://computingforgeeks.com/install-cri-o-container-runtime-on-rocky-linux-almalinux/
 function InstallCRI-O
 {
     echo "Function: InstallCRI-O starting (STEP 5)"
@@ -171,6 +171,8 @@ function InstallCRI-O
 	https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION/CentOS_8/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION.repo
 
     dnf install -y cri-o
+
+    dnf install -y cri-tools  # This is optional, but allows testing CRI-O prior to installing Kubernetes
 
     systemctl enable --now cri-o
     systemctl start cri-o
