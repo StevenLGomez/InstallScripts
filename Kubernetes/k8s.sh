@@ -48,9 +48,9 @@ function DisableSwap
 
 # #############################################################################
 #
-function ConfigureNetwork
+function UpdateEtcHosts
 {
-    echo "Function: ConfigureNetwork starting (STEP 2)"
+    echo "Function: UpdateEtcHosts starting (STEP 2)"
 
     # Update /etc/hosts
 
@@ -98,28 +98,28 @@ function ConfigureNetwork
 	echo '10.17.20.117     k-node02  k-node02.corp.internal    # Kubernetes Worker 02' >> /etc/hosts
     fi
 
-    dnf -y install iproute-tc
+#    dnf -y install iproute-tc
+#
+#    # Configure iptables to see bridged traffic
+#    # Create the .conf file to load the modules at bootup
+#cat <<EOF | tee /etc/modules-load.d/k8s.conf
+#overlay
+#br_netfilter
+#EOF
+#
+#    modprobe overlay
+#    modprobe br_netfilter
+#
+#    # Set up required sysctl params, these persist across reboots.
+#cat <<EOF | tee /etc/sysctl.d/kubernetes.conf
+#net.bridge.bridge-nf-call-iptables  = 1
+#net.ipv4.ip_forward                 = 1
+#net.bridge.bridge-nf-call-ip6tables = 1
+#EOF
+#
+#    sysctl --system
 
-    # Configure iptables to see bridged traffic
-    # Create the .conf file to load the modules at bootup
-cat <<EOF | tee /etc/modules-load.d/k8s.conf
-overlay
-br_netfilter
-EOF
-
-    modprobe overlay
-    modprobe br_netfilter
-
-    # Set up required sysctl params, these persist across reboots.
-cat <<EOF | tee /etc/sysctl.d/k8s.conf
-net.bridge.bridge-nf-call-iptables  = 1
-net.ipv4.ip_forward                 = 1
-net.bridge.bridge-nf-call-ip6tables = 1
-EOF
-
-    sysctl --system
-
-    echo "Function: ConfigureNetwork complete (STEP 2)"
+    echo "Function: UpdateEtcHosts complete (STEP 2)"
 }
 # -----------------------------------------------------------------------------
 
@@ -185,10 +185,77 @@ function InstallCRI-O
 
     dnf install -y cri-tools  # This is optional, but allows testing CRI-O prior to installing Kubernetes
 
+    # Confirm installation of CRI-O
+    rpm -qi cri-o
+
+    systemctl daemon-reload
     systemctl enable --now cri-o
     systemctl start cri-o
 
     echo "Function: InstallCRI-O complete (STEP 5)"
+}
+# -----------------------------------------------------------------------------
+
+# #############################################################################
+# https://hashnode.com/post/install-kubernetes-with-cri-o-container-runtime-on-centos-8-centos-7-cl0oz6cei04p12onv6dtofd3p
+#
+function InstallKubernetesRepository
+{
+    echo "Function: InstallKubernetesRepository starting (STEP 6), alternate method"
+
+    # Note - HERE Docs must be on column zero.
+
+tee /etc/yum.repos.d/kubernetes.repo<<EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+
+    # Perform another update to pull information from the repository above
+    dnf -y update
+
+    # Disable SELinux
+    setenforce 0
+    sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+    # Disable SELinux
+    sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+    swapoff -a
+
+    # Not all examples include iproute-tc
+    dnf -y install iproute-tc
+
+    modprobe overlay
+    modprobe br_netfilter
+
+tee /etc/sysctl.d/kubernetes.conf<<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+    sysctl --system
+
+    # Install the necessary packages
+    dnf -y install epel-release vim git curl wget kubelet kubeadm kubectl --disableexcludes=kubernetes
+
+    # Make sure the br_netfilter module is loaded
+    lsmod | grep br_netfilter
+
+    # Enable kubelet service
+    systemctl enable kubelet
+
+
+
+
+
+
+
+    echo "Function: InstallKubernetesRepository complete (STEP 6)"
 }
 # -----------------------------------------------------------------------------
 
@@ -329,12 +396,19 @@ function Spare_Function
 
 PerformUpdate
 
-DisableSwap
-ConfigureNetwork
+UpdateEtcHosts
 ConfigureFirewall
-DisableSELinux
 InstallCRI-O
-InstallKubernetes
+#DisableSwap
+#DisableSELinux
+
+exit
+
+# InstallKubernetes
+InstallKubernetesRepository
+
+exit
+
 CreateCluster
 InstallDashboard
 
