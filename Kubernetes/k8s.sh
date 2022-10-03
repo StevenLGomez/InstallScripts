@@ -13,6 +13,20 @@
 # RAM   8 GB
 # HD    300 GB thin
 
+# #############################################################################
+#
+# POST Installation Instructions
+#
+# #############################################################################
+# To start using your cluster, you need to run the following as a regular user:
+# mkdir -p $HOME/.kube
+# sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+# sudo chown $(id -u):$(id -g) $HOME/.kube/config
+#
+# You should now deploy a pod network to the cluster.
+# run "kubectl apply -f [podnetwork].yaml" with one of th eoptions listed at:
+#    https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
 # Component versions defined here:
 # https://graspingtech.com/install-kubernetes-rhel-8/
 # Kubernetes v1.21.2
@@ -390,11 +404,22 @@ function CreateCluster
 # #############################################################################
 # https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
 #
+# https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/
+# Web UI will be available:
+# http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/.
+#
+# after: kubectl proxy &
+#
 function InstallDashboard
 {
     echo "Function: InstallDashboard starting (STEP 8)"
 
-    kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.4.0/aio/deploy/recommended.yaml
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.6.1/aio/deploy/recommended.yaml
+
+    echo "After running kubectl proxy"
+    echo "Kubernetes Dashboard will be available:"
+    echo "http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/"
+
 
     echo "Function: InstallDashboard complete (STEP 8)"
 }
@@ -444,8 +469,6 @@ ConfigureFirewall
 InstallCRI-O-alternate
 #DisableSwap
 #DisableSELinux
-
-exit
 
 # InstallKubernetes
 InstallKubernetesRepository
