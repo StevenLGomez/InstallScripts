@@ -165,6 +165,38 @@ function DisableSELinux
 # -----------------------------------------------------------------------------
 
 # #############################################################################
+# Alternate method from:
+# https://hashnode.com/post/install-kubernetes-with-cri-o-container-runtime-on-centos-8-centos-7-cl0oz6cei04p12onv6dtofd3p
+function InstallCRI-O-alternate
+{
+    echo "Function: InstallCRI-O-alternate starting (STEP 5)"
+
+    VERSION=1.22
+
+    dnf -y install 'dnf-command(copr)'
+    dnf -y copr enable rhcontainerbot/container-selinux
+
+    curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo \
+	https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/CentOS_8/devel:kubic:libcontainers:stable.repo
+
+    curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:${VERSION}.repo \
+	https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:${VERSION}/CentOS_8/devel:kubic:libcontainers:stable:cri-o:${VERSION}.repo
+
+    dnf -y install cri-o cri-tools
+
+    rpm -qi cri-o
+
+    systemctl daemon-reload
+    systemctl start crio
+    systemctl enable crio
+
+    echo "Function: InstallCRI-O-alternate complete (STEP 5)"
+}
+# -----------------------------------------------------------------------------
+
+
+
+# #############################################################################
 # Supporting information from: https://computingforgeeks.com/install-cri-o-container-runtime-on-rocky-linux-almalinux/
 #
 # To test operation, add admin account using visudo (if RH derivative)
@@ -398,7 +430,8 @@ PerformUpdate
 
 UpdateEtcHosts
 ConfigureFirewall
-InstallCRI-O
+#InstallCRI-O
+InstallCRI-O-alternate
 #DisableSwap
 #DisableSELinux
 
