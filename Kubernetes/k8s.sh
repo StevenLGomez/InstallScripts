@@ -22,7 +22,7 @@
 
 # But the versions noted above do not install properly on RHEL 8, so revert to these:
 CRIO_VERSION=1.21
-K8S_VERSION=v1.21
+K8S_VERSION=v1.21.2
 
 
 # #############################################################################
@@ -246,8 +246,8 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-# ExecStart=/usr/bin/kubelet # RHEL 8 Location (From repository method)
-ExecStart=/usr/local/bin/kubelet # Rocky 8 Location (From curl method)
+# ExecStart=/usr/bin/kubelet         # From repository method
+ExecStart=/usr/local/bin/kubelet     # From curl method
 Restart=always
 StartLimitInterval=0
 RestartSec=10
