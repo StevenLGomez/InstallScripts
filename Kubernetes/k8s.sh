@@ -4,6 +4,10 @@
 # https://www.redhat.com/en/blog/introducing-cri-o-10
 # https://access.redhat.com/containers/guide           << Openshift Introduction
 # https://access.redhat.com/documentation/en-us/openshift_container_platform/3.11/html/cri-o_runtime/use-crio-engine#get-crio-use-crio-engine
+#
+# The following site provided information that allowed working around the version clashes with CRI-O & K8S
+#
+# https://hashnode.com/post/install-kubernetes-with-cri-o-container-runtime-on-centos-8-centos-7-cl0oz6cei04p12onv6dtofd3p
 # First pass of VMs created as:
 # CPU   4
 # RAM   8 GB
@@ -131,18 +135,24 @@ function ConfigureFirewall
     echo "Function: ConfigureFirewall starting (STEP 3)"
 
     # Master Node (Control Plane) ports
-    firewall-cmd --zone=public --add-service=kube-apiserver --permanent    # Kubernetes API Server (port 6443)
-    firewall-cmd --zone=public --add-service=etcd-client --permanent       # Kubernetes etcd Server API (port 2379)
-    firewall-cmd --zone=public --add-service=etcd-server --permanent       # Kubernetes etcd Server API (port 2379)
+    firewall-cmd --add-port={6443,2379-2380,10250,10251,10252,5473,179,5473}/tcp --permanent
+    firewall-cmd --add-port={4789,8285,8472}/udp --permanent
+    firewall-cmd --reload
 
-    firewall-cmd --zone=public --add-port=10251/tcp --permanent            # kube-scheduler
-    firewall-cmd --zone=public --add-port=10252/tcp --permanent            # kube-controller-manager
-
-    # Needed by Master & Worker Nodes
-    firewall-cmd --zone=public --add-port=10250/tcp --permanent            # kubelet API
-
+#    firewall-cmd --zone=public --add-service=kube-apiserver --permanent    # Kubernetes API Server (port 6443)
+#    firewall-cmd --zone=public --add-service=etcd-client --permanent       # Kubernetes etcd Server API (port 2379)
+#    firewall-cmd --zone=public --add-service=etcd-server --permanent       # Kubernetes etcd Server API (port 2379)
+#
+#    firewall-cmd --zone=public --add-port=10251/tcp --permanent            # kube-scheduler
+#    firewall-cmd --zone=public --add-port=10252/tcp --permanent            # kube-controller-manager
+#
+#    # Needed by Master & Worker Nodes
+#    firewall-cmd --zone=public --add-port=10250/tcp --permanent            # kubelet API
+#
     # Worker Nodes only
-    firewall-cmd --zone=public --add-port=30000-32767/tcp --permanent      # NodePort Services
+    #firewall-cmd --add-port={10250,30000-32767,5473,179,5473}/tcp --permanent
+    #firewall-cmd --add-port={4789,8285,8472}/udp --permanent
+    #firewall-cmd --reload
 
     # apply changes
     firewall-cmd --reload
@@ -281,10 +291,10 @@ EOF
     # Enable kubelet service
     systemctl enable kubelet
 
+    kubeadm config images pull
 
-
-
-
+    # kubeadm init --pod-network-cidr=10.17.20.112/29 --cri-socket /var/run/crio/crio.sock
+    kubeadm init --cri-socket /var/run/crio/crio.sock
 
 
     echo "Function: InstallKubernetesRepository complete (STEP 6)"
