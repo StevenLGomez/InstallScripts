@@ -246,8 +246,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-# ExecStart=/usr/bin/kubelet         # From repository method
-ExecStart=/usr/local/bin/kubelet     # From curl method
+ExecStart=/usr/local/bin/kubelet
 Restart=always
 StartLimitInterval=0
 RestartSec=10
