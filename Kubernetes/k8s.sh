@@ -21,8 +21,8 @@
 #K8S_VERSION=v1.24
 
 # But the versions noted above do not install properly on RHEL 8, so revert to these:
-CRIO_VERSION=1.21.1
-K8S_VERSION=v1.21.2
+CRIO_VERSION=1.21
+K8S_VERSION=v1.21
 
 
 # #############################################################################
@@ -305,7 +305,7 @@ function ShowServerSpecifications
     df -hT
 
     echo "CPU Cores:"
-    egrep ^processor /proc/cpuinto | wc -l
+    egrep ^processor /proc/cpuinfo | wc -l
 
     echo "#############################################################################"
 }
