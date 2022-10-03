@@ -15,9 +15,13 @@
 # CRI-O v1.21.1
 # Calico
 
-CRIO_VERSION=1.21
-K8S_VERSION=v1.21.2
+#CRIO_VERSION=1.21
+#K8S_VERSION=v1.21.2
 
+# Per Red Hat Support information, https://access.redhat.com/solutions/4870701
+# OpenShift 4.11 uses these versions (as of October 3, 2022):
+CRIO_VERSION=1.24
+K8S_VERSION=v1.24
 
 
 # #############################################################################
@@ -161,6 +165,12 @@ function DisableSELinux
 
 # #############################################################################
 # Supporting information from: https://computingforgeeks.com/install-cri-o-container-runtime-on-rocky-linux-almalinux/
+#
+# To test operation, add admin account using visudo (if RH derivative)
+# sudo crictl pull hello-world:latest
+# sudo crictl pull alpine:latest
+# sudo crictl images   <== Should show both images pulled above
+#
 function InstallCRI-O
 {
     echo "Function: InstallCRI-O starting (STEP 5)"
