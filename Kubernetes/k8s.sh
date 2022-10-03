@@ -15,13 +15,14 @@
 # CRI-O v1.21.1
 # Calico
 
-#CRIO_VERSION=1.21
-#K8S_VERSION=v1.21.2
-
 # Per Red Hat Support information, https://access.redhat.com/solutions/4870701
 # OpenShift 4.11 uses these versions (as of October 3, 2022):
-CRIO_VERSION=1.24
-K8S_VERSION=v1.24
+#CRIO_VERSION=1.24
+#K8S_VERSION=v1.24
+
+# But the versions noted above do not install properly on RHEL 8, so revert to these:
+CRIO_VERSION=1.21.1
+K8S_VERSION=v1.21.2
 
 
 # #############################################################################
