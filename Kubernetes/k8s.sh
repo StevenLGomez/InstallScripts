@@ -24,7 +24,7 @@
 # sudo chown $(id -u):$(id -g) $HOME/.kube/config
 #
 # You should now deploy a pod network to the cluster.
-# run "kubectl apply -f [podnetwork].yaml" with one of th eoptions listed at:
+# run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
 #    https://kubernetes.io/docs/concepts/cluster-administration/addons/
 
 # Component versions defined here:
@@ -48,6 +48,7 @@ K8S_VERSION=v1.21.2
 function PerformUpdate
 {
     echo "Function: PerformUpdate starting (STEP 0)"
+
     dnf -y update
     echo "Function: PerformUpdate complete"
 }
@@ -58,86 +59,57 @@ function PerformUpdate
 function DisableSwap
 {
     echo "Function: DisableSwap starting (STEP 1)"
+
     swapoff -a
     sed -e '/.* none.* swap.*/ s/^#*/#/' -i /etc/fstab
+
+    # Check swap using /procs/swaps
+    cat /proc/swaps
+
+    # Check swap using free command
+    free -m
+
     echo "Function: DisableSwap complete (STEP 1)"
 }
 # -----------------------------------------------------------------------------
 
 # #############################################################################
 #
-function UpdateEtcHosts
+function SetupKernelModules
 {
-    echo "Function: UpdateEtcHosts starting (STEP 2)"
+    echo "Function: SetupKernelModules starting"
 
-    # Update /etc/hosts
+    # Not all examples include iproute-tc
+    dnf -y install iproute-tc
 
-    # GESLLC updates
-#    if grep -q rk-master /etc/hosts; then
-#    echo "rk-master entry already exists in /etc/hosts (skipping)"
-#    else
-#	echo "Adding rk-master to /etc/hosts (ESXi Server)"
-#	echo '10.1.1.115     rk-master  rk-master.gomezengineering.lan    # Kubernetes Master' >> /etc/hosts
-#    fi
-#
-#    if grep -q rk-node01 /etc/hosts; then
-#    echo "rk-node01 entry already exists in /etc/hosts (skipping)"
-#    else
-#	echo "Adding rk-node01 to /etc/hosts (ESXi Server)"
-#	echo '10.1.1.116     rk-node01  rk-node01.gomezengineering.lan    # Kubernetes Worker 01' >> /etc/hosts
-#    fi
-#
-#    if grep -q rk-node02 /etc/hosts; then
-#    echo "rk-node02 entry already exists in /etc/hosts (skipping)"
-#    else
-#	echo "Adding rk-node02 to /etc/hosts (ESXi Server)"
-#	echo '10.1.1.117     rk-node02  rk-node02.gomezengineering.lan    # Kubernetes Worker 02' >> /etc/hosts
-#    fi
+    # Create config file to Automatically load Kernel Modules
+cat <<EOF | sudo tee /etc/modules-load.d/kubernetes.conf
+overlay
+br_netfilter
+EOF
 
-    # vCenter updates
-    if grep -q k-master /etc/hosts; then
-    echo "k-master entry already exists in /etc/hosts (skipping)"
-    else
-	echo "Adding k-master to /etc/hosts (ESXi Server)"
-	echo '10.17.20.115     k-master  k-master.corp.internal    # Kubernetes Master' >> /etc/hosts
-    fi
+    # Enable kernel modules (overlay & br_netfilter
+    modprobe overlay
+    modprobe br_netfilter
 
-    if grep -q k-node01 /etc/hosts; then
-    echo "k-node01 entry already exists in /etc/hosts (skipping)"
-    else
-	echo "Adding k-node01 to /etc/hosts (ESXi Server)"
-	echo '10.17.20.116     k-node01  k-node01.corp.internal    # Kubernetes Worker 01' >> /etc/hosts
-    fi
+    # Check kernel module status
+    # Output should show single line entry for overlay,
+    #        and 2 line entry for br_netfilter
+    lsmod | grep overlay
+    lsmod | grep br_netfilter
 
-    if grep -q k-node02 /etc/hosts; then
-    echo "k-node02 entry already exists in /etc/hosts (skipping)"
-    else
-	echo "Adding k-node02 to /etc/hosts (ESXi Server)"
-	echo '10.17.20.117     k-node02  k-node02.corp.internal    # Kubernetes Worker 02' >> /etc/hosts
-    fi
+    # Create config file to enable Bridge Networking (net.bridge)
+# setting up kernel parameters via config file
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+EOF
 
-#    dnf -y install iproute-tc
-#
-#    # Configure iptables to see bridged traffic
-#    # Create the .conf file to load the modules at bootup
-#cat <<EOF | tee /etc/modules-load.d/k8s.conf
-#overlay
-#br_netfilter
-#EOF
-#
-#    modprobe overlay
-#    modprobe br_netfilter
-#
-#    # Set up required sysctl params, these persist across reboots.
-#cat <<EOF | tee /etc/sysctl.d/kubernetes.conf
-#net.bridge.bridge-nf-call-iptables  = 1
-#net.ipv4.ip_forward                 = 1
-#net.bridge.bridge-nf-call-ip6tables = 1
-#EOF
-#
-#    sysctl --system
+    # Apply new kernel parameters
+    sysctl --system
 
-    echo "Function: UpdateEtcHosts complete (STEP 2)"
+    echo "Function: SetupKernelModules complete"
 }
 # -----------------------------------------------------------------------------
 
@@ -148,25 +120,47 @@ function ConfigureFirewall
 {
     echo "Function: ConfigureFirewall starting (STEP 3)"
 
-    # Master Node (Control Plane) ports
-    firewall-cmd --add-port={6443,2379-2380,10250,10251,10252,5473,179,5473}/tcp --permanent
-    firewall-cmd --add-port={4789,8285,8472}/udp --permanent
-    firewall-cmd --reload
+    if [ $NODE_TYPE = "MASTER" ]
+    then
+	echo "Applying MASTER Node firewall settings"
 
-#    firewall-cmd --zone=public --add-service=kube-apiserver --permanent    # Kubernetes API Server (port 6443)
-#    firewall-cmd --zone=public --add-service=etcd-client --permanent       # Kubernetes etcd Server API (port 2379)
-#    firewall-cmd --zone=public --add-service=etcd-server --permanent       # Kubernetes etcd Server API (port 2379)
-#
-#    firewall-cmd --zone=public --add-port=10251/tcp --permanent            # kube-scheduler
-#    firewall-cmd --zone=public --add-port=10252/tcp --permanent            # kube-controller-manager
-#
-#    # Needed by Master & Worker Nodes
-#    firewall-cmd --zone=public --add-port=10250/tcp --permanent            # kubelet API
-#
-    # Worker Nodes only
-    #firewall-cmd --add-port={10250,30000-32767,5473,179,5473}/tcp --permanent
-    #firewall-cmd --add-port={4789,8285,8472}/udp --permanent
-    #firewall-cmd --reload
+	# From 'Control Plane' list : https://kubernetes.io/docs/reference/ports-and-protocols/
+	# TCP Inbound	2379-2380	etcd Server Cleint API	kube-apiserver, etcd
+	# TCP Inbound	10250		Kubelet API		Self, Control Plane
+	# TCP Inbound	10259		kube-scheduler		Self
+	# TCP Inbound	10257		kube-controller-manager	Self
+
+	# I suspect there were be duplications below....
+
+	firewall-cmd --zone=public --add-service=kube-apiserver --permanent    # Kubernetes API Server (port 6443)
+	firewall-cmd --zone=public --add-service=etcd-client --permanent       # Kubernetes etcd Server API (port 2379)
+	firewall-cmd --zone=public --add-service=etcd-server --permanent       # Kubernetes etcd Server API (port 2379)
+
+	# Master Node (Control Plane) ports
+	firewall-cmd --add-port={6443,2379-2380,10250,10251,10252,5473,5473}/tcp --permanent
+
+	# Ports for Calico CNI
+	firewall-cmd --add-port=179/tcp --permanent
+	firewall-cmd --add-port=2379/tcp --permanent
+	firewall-cmd --add-port=4789/tcp --permanent
+
+	firewall-cmd --add-port=4789/udp --permanent
+	firewall-cmd --add-port={8285,8472}/udp --permanent
+
+    fi
+
+    if [ $NODE_TYPE = "WORKER" ]
+    then
+	echo "Applying WORKER Node firewall settings"
+
+	# From 'Worker Node' list : https://kubernetes.io/docs/reference/ports-and-protocols/
+	# TCP Inbound	10250		Kubelet API		Self, Control Plane
+	# TCP Inbound	30000-32767	NodePort Services	All
+
+	firewall-cmd --add-port={10250,30000-32767,5473,5473}/tcp --permanent
+	firewall-cmd --add-port={4789,8285,8472}/udp --permanent
+
+    fi
 
     # apply changes
     firewall-cmd --reload
@@ -189,9 +183,16 @@ function DisableSELinux
 # -----------------------------------------------------------------------------
 
 # #############################################################################
+# Supporting information from: https://computingforgeeks.com/install-cri-o-container-runtime-on-rocky-linux-almalinux/
 # Alternate method from:
 # https://hashnode.com/post/install-kubernetes-with-cri-o-container-runtime-on-centos-8-centos-7-cl0oz6cei04p12onv6dtofd3p
-function InstallCRI-O-alternate
+#
+# To test operation, add admin account using visudo (if RH derivative)
+# sudo crictl pull hello-world:latest
+# sudo crictl pull alpine:latest
+# sudo crictl images   <== Should show both images pulled above
+#
+function InstallCRIO
 {
     echo "Function: InstallCRI-O-alternate starting (STEP 5)"
 
@@ -211,51 +212,21 @@ function InstallCRI-O-alternate
     rpm -qi cri-o
 
     systemctl daemon-reload
+
+    systemctl enable --now crio
     systemctl start crio
-    systemctl enable crio
 
     echo "Function: InstallCRI-O-alternate complete (STEP 5)"
 }
 # -----------------------------------------------------------------------------
 
 
-
 # #############################################################################
-# Supporting information from: https://computingforgeeks.com/install-cri-o-container-runtime-on-rocky-linux-almalinux/
-#
-# To test operation, add admin account using visudo (if RH derivative)
-# sudo crictl pull hello-world:latest
-# sudo crictl pull alpine:latest
-# sudo crictl images   <== Should show both images pulled above
-#
-function InstallCRI-O
-{
-    echo "Function: InstallCRI-O starting (STEP 5)"
-
-    curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo \
-	https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_8/devel:kubic:libcontainers:stable.repo
-    curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION.repo \
-	https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION/CentOS_8/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION.repo
-
-    dnf install -y cri-o
-
-    dnf install -y cri-tools  # This is optional, but allows testing CRI-O prior to installing Kubernetes
-
-    # Confirm installation of CRI-O
-    rpm -qi cri-o
-
-    systemctl daemon-reload
-    systemctl enable --now cri-o
-    systemctl start cri-o
-
-    echo "Function: InstallCRI-O complete (STEP 5)"
-}
-# -----------------------------------------------------------------------------
-
-# #############################################################################
+# https://v1-21.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+# New info follows:
 # https://hashnode.com/post/install-kubernetes-with-cri-o-container-runtime-on-centos-8-centos-7-cl0oz6cei04p12onv6dtofd3p
 #
-function InstallKubernetesRepository
+function InstallKubernetes
 {
     echo "Function: InstallKubernetesRepository starting (STEP 6), alternate method"
 
@@ -282,25 +253,8 @@ EOF
     sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
     swapoff -a
 
-    # Not all examples include iproute-tc
-    dnf -y install iproute-tc
-
-    modprobe overlay
-    modprobe br_netfilter
-
-tee /etc/sysctl.d/kubernetes.conf<<EOF
-net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
-net.ipv4.ip_forward = 1
-EOF
-
-    sysctl --system
-
     # Install the necessary packages
     dnf -y install epel-release vim git curl wget kubelet kubeadm kubectl --disableexcludes=kubernetes
-
-    # Make sure the br_netfilter module is loaded
-    lsmod | grep br_netfilter
 
     # Enable kubelet service
     systemctl enable kubelet
@@ -316,80 +270,6 @@ EOF
 # -----------------------------------------------------------------------------
 
 # #############################################################################
-# https://v1-21.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
-#
-function InstallKubernetes
-{
-    echo "Function: InstallKubernetes starting (STEP 6)"
-
-    # Using Package Management (Note - doesn't work on Rocky)
-#cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
-#[kubernetes]
-#name=Kubernetes
-#baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
-#enabled=1
-#gpgcheck=1
-#repo_gpgcheck=1
-#gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-#exclude=kubelet kubeadm kubectl
-#EOF
-
-#yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-    # =====================================================================
-
-    # Alternate using CURL Kubernetes v1.21.2
-    # For latest release: curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    #                     curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
-
-    # kubectl
-    curl -LO https://dl.k8s.io/release/$K8S_VERSION/bin/linux/amd64/kubectl
-    curl -LO "https://dl.k8s.io/$K8S_VERSION/bin/linux/amd64/kubectl.sha256"
-    echo "$(<kubectl.sha256) kubectl" | sha256sum --check   # Confirms sha, should show OK
-    install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-
-    # kubeadm
-    curl -LO https://dl.k8s.io/release/$K8S_VERSION/bin/linux/amd64/kubeadm
-    curl -LO "https://dl.k8s.io/$K8S_VERSION/bin/linux/amd64/kubeadm.sha256"
-    echo "$(<kubeadm.sha256) kubeadm" | sha256sum --check   # Confirms sha, should show OK
-    install -o root -g root -m 0755 kubeadm /usr/local/bin/kubeadm
-
-    # kubelet
-    curl -LO https://dl.k8s.io/release/$K8S_VERSION/bin/linux/amd64/kubelet
-    curl -LO "https://dl.k8s.io/$K8S_VERSION/bin/linux/amd64/kubelet.sha256"
-    echo "$(<kubelet.sha256) kubelet" | sha256sum --check   # Confirms sha, should show OK
-    install -o root -g root -m 0755 kubelet /usr/local/bin/kubelet
-
-    # Create HERE Doc for kubelet.service
-cat <<EOF | tee /etc/systemd/system/kubelet.service
-# Contents lifted from RHEL 8 installation
-[Unit]
-Description=kubelet: The Kubernetes Node Agent
-Documentation=https://kubernetes.io/docs/
-Wants=network-online.target
-After=network-online.target
-
-[Service]
-ExecStart=/usr/local/bin/kubelet
-Restart=always
-StartLimitInterval=0
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-    # Enable & start kubelet service
-    systemctl enable --now kubelet
-    systemctl start kubelet
-
-    # To troubleshoot kubelet issues
-    # journalctl -xeu kubelet
-
-    echo "Function: InstallKubernetes complete (STEP 6)"
-}
-# -----------------------------------------------------------------------------
-
-# #############################################################################
 #
 function CreateCluster
 {
@@ -400,6 +280,21 @@ function CreateCluster
     echo "Function: CreateCluster complete (STEP 7)"
 }
 # -----------------------------------------------------------------------------
+
+# #############################################################################
+#
+# See information from: https://adamtheautomator.com/cri-o/
+#
+function DeployCalicoNetworking
+{
+    echo "Function: DeployCalicoNetworking starting (STEP 7)"
+
+
+    echo "Function: DeployCalicoNetworking complete (STEP 7)"
+
+}
+# -----------------------------------------------------------------------------
+
 
 # #############################################################################
 # https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
@@ -461,24 +356,58 @@ function Spare_Function
 # =============================================================================
 # =============================================================================
 
+# Require one parameter
+# $1 = Option String
+#
+# Supported options defined in if statement below
+#
+
+if [ -z "$1" ]
+then
+    echo "ERROR: Missing parameter - must specify MASTER or WORKER node"
+    echo ""
+    echo "Supported Options:"
+    echo "    MASTER    Performs installation using settings for Master node"
+    echo "    WORKER    Performs installation using settings for Worker node"
+    echo ""
+    echo "Usage: $0 MASTER || WORKER"
+    exit
+fi
+
+# Echo the valid command line entry
+echo $0 $1
+
+if [ "$1" = "MASTER" ]
+then
+    echo "Applying MASTER Node settings to installation"
+    NODE_TYPE="MASTER"
+fi
+
+if [ "$1" = "WORKER" ]
+then
+    echo "Applying WORKER Node settings to installation"
+    NODE_TYPE=WORKER
+fi
+
+echo "Applying NODE_TYPE:  ${NODE_TYPE}"
+
+#  Start the installation procedure....
+
 PerformUpdate
 
-UpdateEtcHosts
+SetupKernelModules
+DisableSwap
+DisableSELinux
 ConfigureFirewall
-#InstallCRI-O
-InstallCRI-O-alternate
-#DisableSwap
-#DisableSELinux
-
-# InstallKubernetes
-InstallKubernetesRepository
 
 exit
 
+InstallCRIO
+InstallKubernetes
+DeployCalicoNetworking
+
 CreateCluster
+
 InstallDashboard
-
 ShowServerSpecifications
-
-
 
