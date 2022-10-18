@@ -245,16 +245,9 @@ EOF
     # Perform another update to pull information from the repository above
     dnf -y update
 
-    # Disable SELinux
-    setenforce 0
-    sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-
-    # Disable SELinux
-    sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
-    swapoff -a
-
-    # Install the necessary packages
-    dnf -y install epel-release vim git curl wget kubelet kubeadm kubectl --disableexcludes=kubernetes
+    # Install the necessary packages - Removed duplicates
+    # dnf -y install epel-release vim git curl wget kubelet kubeadm kubectl --disableexcludes=kubernetes
+    dnf -y install kubelet kubeadm kubectl --disableexcludes=kubernetes
 
     # Enable kubelet service
     systemctl enable kubelet
@@ -263,7 +256,6 @@ EOF
 
     # kubeadm init --pod-network-cidr=10.17.20.112/29 --cri-socket /var/run/crio/crio.sock
     kubeadm init --cri-socket /var/run/crio/crio.sock
-
 
     echo "Function: InstallKubernetesRepository complete (STEP 6)"
 }
