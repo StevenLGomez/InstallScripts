@@ -39,8 +39,8 @@
 #K8S_VERSION=v1.24
 
 # But the versions noted above do not install properly on RHEL 8, so revert to these:
-CRIO_VERSION=1.21
-K8S_VERSION=v1.21.2
+CRIO_VERSION=1.22
+K8S_VERSION=v1.22.15
 
 
 # #############################################################################
@@ -137,7 +137,7 @@ function ConfigureFirewall
 	firewall-cmd --zone=public --add-service=etcd-server --permanent       # Kubernetes etcd Server API (port 2379)
 
 	# Master Node (Control Plane) ports
-	firewall-cmd --add-port={6443,2379-2380,10250,10251,10252,5473,5473}/tcp --permanent
+	firewall-cmd --add-port={6443,2380,10250,10251,10252,5473}/tcp --permanent
 
 	# Ports for Calico CNI
 	firewall-cmd --add-port=179/tcp --permanent
