@@ -12,9 +12,9 @@ k-node01  10.17.20.116
 k-node02  10.17.20.117
 
 Parallel in ESXi, using Rocky 8 created:
-rk-master  10.1.1.115 Server with GUI + (Container Management optional, omitted here)
-rk-node01  10.1.1.116 Minimal
-rk-node02  10.1.1.117 Minimal
+k-master  10.1.1.115 Minimal - Originally: Server with GUI + (Container Management optional, omitted here)
+k-node01  10.1.1.116 Minimal
+k-node02  10.1.1.117 Minimal
 
 https://graspingtech.com/install-kubernetes-rhel-8/
 Kubernetes v1.21.2
@@ -30,9 +30,9 @@ Edit /etc/fstab - comment out swap line
 
 # STEP 2 - Configure the Network
 Edit /etc/hosts - Include all three systems
-10.1.1.115  rk-master
-10.1.1.116  rk-node01
-10.1.1.117  rk-node02
+10.1.1.115  k-master
+10.1.1.116  k-node01
+10.1.1.117  k-node02
 
 dnf install -y iproute-tc
 

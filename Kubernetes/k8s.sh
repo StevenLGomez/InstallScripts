@@ -8,10 +8,17 @@
 # The following site provided information that allowed working around the version clashes with CRI-O & K8S
 #
 # https://hashnode.com/post/install-kubernetes-with-cri-o-container-runtime-on-centos-8-centos-7-cl0oz6cei04p12onv6dtofd3p
+#
 # First pass of VMs created as:
+#
+# k-master
+# k-node01
+# k-node02
+#
 # CPU   4
 # RAM   8 GB
 # HD    300 GB thin
+
 
 # #############################################################################
 #
@@ -50,6 +57,10 @@ function PerformUpdate
     echo "Function: PerformUpdate starting (STEP 0)"
 
     dnf -y update
+
+    # Install basic applications
+    dnf -y install vim git wget curl
+
     echo "Function: PerformUpdate complete"
 }
 # -----------------------------------------------------------------------------
@@ -194,7 +205,7 @@ function DisableSELinux
 #
 function InstallCRIO
 {
-    echo "Function: InstallCRI-O-alternate starting (STEP 5)"
+    echo "Function: InstallCRIO starting (STEP 5)"
 
     VERSION=1.22
 
@@ -213,10 +224,11 @@ function InstallCRIO
 
     systemctl daemon-reload
 
+    # NOTE that the service is crio, not cri-o 
     systemctl enable --now crio
     systemctl start crio
 
-    echo "Function: InstallCRI-O-alternate complete (STEP 5)"
+    echo "Function: InstallCRIO complete (STEP 5)"
 }
 # -----------------------------------------------------------------------------
 
@@ -228,7 +240,7 @@ function InstallCRIO
 #
 function InstallKubernetes
 {
-    echo "Function: InstallKubernetesRepository starting (STEP 6), alternate method"
+    echo "Function: InstallKubernetes starting (STEP 6), alternate method"
 
     # Note - HERE Docs must be on column zero.
 
@@ -257,7 +269,7 @@ EOF
     # kubeadm init --pod-network-cidr=10.17.20.112/29 --cri-socket /var/run/crio/crio.sock
     kubeadm init --cri-socket /var/run/crio/crio.sock
 
-    echo "Function: InstallKubernetesRepository complete (STEP 6)"
+    echo "Function: InstallKubernetes complete (STEP 6)"
 }
 # -----------------------------------------------------------------------------
 
@@ -391,11 +403,11 @@ SetupKernelModules
 DisableSwap
 DisableSELinux
 ConfigureFirewall
+InstallCRIO
+InstallKubernetes
 
 exit
 
-InstallCRIO
-InstallKubernetes
 DeployCalicoNetworking
 
 CreateCluster
