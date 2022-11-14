@@ -46,8 +46,8 @@
 #K8S_VERSION=v1.24
 
 # But the versions noted above do not install properly on RHEL 8, so revert to these:
-CRIO_VERSION=1.22
-K8S_VERSION=v1.22.15
+CRIO_VERSION=1.25
+K8S_VERSION=v1.25
 
 
 # #############################################################################
@@ -207,16 +207,14 @@ function InstallCRIO
 {
     echo "Function: InstallCRIO starting (STEP 5)"
 
-    VERSION=1.22
-
     dnf -y install 'dnf-command(copr)'
     dnf -y copr enable rhcontainerbot/container-selinux
 
     curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo \
 	https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/CentOS_8/devel:kubic:libcontainers:stable.repo
 
-    curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:${VERSION}.repo \
-	https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:${VERSION}/CentOS_8/devel:kubic:libcontainers:stable:cri-o:${VERSION}.repo
+    curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:${CRIO_VERSION}.repo \
+	https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:${CRIO_VERSION}/CentOS_8/devel:kubic:libcontainers:stable:cri-o:${CRIO_VERSION}.repo
 
     dnf -y install cri-o cri-tools
 
@@ -224,7 +222,7 @@ function InstallCRIO
 
     systemctl daemon-reload
 
-    # NOTE that the service is crio, not cri-o 
+    # NOTE that the service is crio, not cri-o
     systemctl enable --now crio
     systemctl start crio
 
@@ -237,6 +235,10 @@ function InstallCRIO
 # https://v1-21.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 # New info follows:
 # https://hashnode.com/post/install-kubernetes-with-cri-o-container-runtime-on-centos-8-centos-7-cl0oz6cei04p12onv6dtofd3p
+#
+# And directly from Kubernetes documentation:
+# https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
+#
 #
 function InstallKubernetes
 {
@@ -261,13 +263,25 @@ EOF
     # dnf -y install epel-release vim git curl wget kubelet kubeadm kubectl --disableexcludes=kubernetes
     dnf -y install kubelet kubeadm kubectl --disableexcludes=kubernetes
 
-    # Enable kubelet service
-    systemctl enable kubelet
+    echo "=============================================================================================="
+    echo "======================== Kubernetes Component Installation Complete =========================="
+    echo "=============================================================================================="
 
+    # Do some kubeadm configurations
+    echo "Pulling images..."
     kubeadm config images pull
 
+    echo "kubeadm initializing..."
     # kubeadm init --pod-network-cidr=10.17.20.112/29 --cri-socket /var/run/crio/crio.sock
     kubeadm init --cri-socket /var/run/crio/crio.sock
+
+    echo "=============================================================================================="
+    echo "======================== Starting kubelet ===================================================="
+    echo "=============================================================================================="
+
+    # Enable kubelet service
+    systemctl enable --now kubelet
+    systemctl start kubelet
 
     echo "Function: InstallKubernetes complete (STEP 6)"
 }

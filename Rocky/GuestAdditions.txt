@@ -15,6 +15,6 @@ uname -r
 # wget http://download.virtualbox.org/virtualbox/6.1.22/VBoxGuestAdditions_6.1.22.iso -P /tmp
 # mount /tmp/VBoxGuestAdditions_6.1.22.iso /run/media/
 
-/run/media/root/Vbox_Gas_6.1.30/VBoxLinuxAdditions.run
+/run/media/root/VBox_Gas_6.1.30/VBoxLinuxAdditions.run
 
 reboot
