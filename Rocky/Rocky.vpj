@@ -9,7 +9,7 @@
             Name="Source Files"
             Filters="*.py"
             GUID="{3CB2152F-AFB4-4621-B381-A8B8F1635A98}">
-            <F N="k8s-install.sh"/>
+            <F N="ansible.sh"/>
             <F N="yocto.sh"/>
         </Folder>
         <Folder
