@@ -86,9 +86,9 @@ function DisableSwap
 
 # #############################################################################
 #
-function SetupKernelModules
+function ConfigureSysctl
 {
-    echo "Function: SetupKernelModules starting"
+    echo "Function: ConfigureSysctl starting"
 
     # Not all examples include iproute-tc
     dnf -y install iproute-tc
@@ -111,7 +111,7 @@ EOF
 
     # Create config file to enable Bridge Networking (net.bridge)
 # setting up kernel parameters via config file
-cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+cat <<EOF | sudo tee /etc/sysctl.d/kubernetes.conf
 net.bridge.bridge-nf-call-iptables  = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward                 = 1
@@ -120,7 +120,7 @@ EOF
     # Apply new kernel parameters
     sysctl --system
 
-    echo "Function: SetupKernelModules complete"
+    echo "Function: ConfigureSysctl complete"
 }
 # -----------------------------------------------------------------------------
 
@@ -239,6 +239,7 @@ function InstallCRIO
 # And directly from Kubernetes documentation:
 # https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
 #
+# https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 #
 function InstallKubernetes
 {
@@ -254,7 +255,12 @@ enabled=1
 gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+exclude=kubelet kubeadm kubectl
 EOF
+
+    echo "=============================================================================================="
+    echo "======================== Installing Kubernetes Components ===================================="
+    echo "=============================================================================================="
 
     # Perform another update to pull information from the repository above
     dnf -y update
@@ -264,24 +270,11 @@ EOF
     dnf -y install kubelet kubeadm kubectl --disableexcludes=kubernetes
 
     echo "=============================================================================================="
-    echo "======================== Kubernetes Component Installation Complete =========================="
-    echo "=============================================================================================="
-
-    # Do some kubeadm configurations
-    echo "Pulling images..."
-    kubeadm config images pull
-
-    echo "kubeadm initializing..."
-    # kubeadm init --pod-network-cidr=10.17.20.112/29 --cri-socket /var/run/crio/crio.sock
-    kubeadm init --cri-socket /var/run/crio/crio.sock
-
-    echo "=============================================================================================="
     echo "======================== Starting kubelet ===================================================="
     echo "=============================================================================================="
 
     # Enable kubelet service
     systemctl enable --now kubelet
-    systemctl start kubelet
 
     echo "Function: InstallKubernetes complete (STEP 6)"
 }
@@ -289,11 +282,38 @@ EOF
 
 # #############################################################################
 #
+# Cluster creation performed using kubeadm
+#
 function CreateCluster
 {
     echo "Function: CreateCluster starting (STEP 7)"
 
-    kubeadm init --pod-network-cidr=10.1.1.115/20 --ignore-preflight-errors=FileExisting-conntrack
+    echo "=============================================================================================="
+    echo "======================== kubeadm initializing ================================================"
+    echo "=============================================================================================="
+
+    # Initialize to use Classless Inter-Domain Routing (CIDR)
+    kubeadm init --pod-network-cidr=192.168.0.0/16
+
+    # Investigate the apiserver option...
+    # kubeadm init --apiserver-advertise-address=10.17.20.115 --pod-network-cidr=192.168.0.0/16
+
+    echo "=============================================================================================="
+    echo "======================== kubeadm initialization complete ====================================="
+    echo "=============================================================================================="
+
+    if [ $NODE_TYPE = "MASTER" ]
+    then
+        # Setup permissions for admin user
+        mkdir -p /home/admin/.kube/config
+        cp /etc/kubernetes/admin.conf /home/admin/.kube/config
+        chown -R admin:admin /home/admin/.kube/config
+
+        export KUBECONFIG=/home/admin/.kube/config/admin.conf
+
+        # This should suceed, displaying k-master as the control-plane
+        kubectl get nodes
+    fi
 
     echo "Function: CreateCluster complete (STEP 7)"
 }
@@ -303,12 +323,21 @@ function CreateCluster
 #
 # See information from: https://adamtheautomator.com/cri-o/
 #
-function DeployCalicoNetworking
+# https://www.golinuxcloud.com/calico-kubernetes/
+# https://www.golinuxcloud.com/deploy-multi-node-k8s-cluster-rocky-linux-8/#Step_1_Prepare_the_Kubernetes_Cluster
+#
+# https://github.com/cri-o/cri-o/blob/main/install.md#other-yum-based-operating-systems
+#
+function ConfigureCalicoNetworking
 {
-    echo "Function: DeployCalicoNetworking starting (STEP 7)"
+    echo "Function: ConfigureCalicoNetworking starting (STEP 7)"
 
+    kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
-    echo "Function: DeployCalicoNetworking complete (STEP 7)"
+    # This should succeed, with the calico-* items showing STATUS = Pending
+    kubectl get pods --all-namespaces
+
+    echo "Function: ConfigureCalicoNetworking complete (STEP 7)"
 
 }
 # -----------------------------------------------------------------------------
@@ -413,19 +442,24 @@ echo "Applying NODE_TYPE:  ${NODE_TYPE}"
 
 PerformUpdate
 
-SetupKernelModules
+ConfigureSysctl
 DisableSwap
 DisableSELinux
 ConfigureFirewall
 InstallCRIO
 InstallKubernetes
 
-exit
+if [ $NODE_TYPE = "MASTER" ]
+then
+    echo "=============================================================================================="
+    echo "======================== Performing MASTER node final configuration =========================="
+    echo "=============================================================================================="
 
-DeployCalicoNetworking
+    CreateCluster
+    ConfigureCalicoNetworking
 
-CreateCluster
+    #InstallDashboard
+fi
 
-InstallDashboard
 ShowServerSpecifications
 
