@@ -332,7 +332,12 @@ function ConfigureCalicoNetworking
 {
     echo "Function: ConfigureCalicoNetworking starting (STEP 7)"
 
-    kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+    # Download calico.yaml - can optionally edit it here as well before applying
+    curl https://docs.projectcalico.org/manifests/calico.yaml -O
+
+    # Perform edits on calico.yaml here... ??
+
+    kubectl apply -f calico.yaml
 
     # This should succeed, with the calico-* items showing STATUS = Pending
     kubectl get pods --all-namespaces
