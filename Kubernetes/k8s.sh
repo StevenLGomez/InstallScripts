@@ -150,11 +150,6 @@ function ConfigureFirewall
 	# Master Node (Control Plane) ports
 	firewall-cmd --add-port={6443,2380,10250,10251,10252,5473}/tcp --permanent
 
-	# Ports for Calico CNI
-	firewall-cmd --add-port=179/tcp --permanent
-	firewall-cmd --add-port=2379/tcp --permanent
-	firewall-cmd --add-port=4789/tcp --permanent
-
 	firewall-cmd --add-port=4789/udp --permanent
 	firewall-cmd --add-port={8285,8472}/udp --permanent
 
@@ -172,6 +167,11 @@ function ConfigureFirewall
 	firewall-cmd --add-port={4789,8285,8472}/udp --permanent
 
     fi
+
+    # Ports for Calico CNI - needed for all nodes
+    firewall-cmd --add-port=179/tcp --permanent
+    firewall-cmd --add-port=2379/tcp --permanent
+    firewall-cmd --add-port=4789/tcp --permanent
 
     # apply changes
     firewall-cmd --reload
@@ -328,21 +328,19 @@ function CreateCluster
 #
 # https://github.com/cri-o/cri-o/blob/main/install.md#other-yum-based-operating-systems
 #
-function ConfigureCalicoNetworking
+function InstallCalico
 {
-    echo "Function: ConfigureCalicoNetworking starting (STEP 7)"
+    echo "Function: InstallCalico starting (STEP 7)"
 
     # Download calico.yaml - can optionally edit it here as well before applying
     curl https://docs.projectcalico.org/manifests/calico.yaml -O
-
-    # Perform edits on calico.yaml here... ??
 
     kubectl apply -f calico.yaml
 
     # This should succeed, with the calico-* items showing STATUS = Pending
     kubectl get pods --all-namespaces
 
-    echo "Function: ConfigureCalicoNetworking complete (STEP 7)"
+    echo "Function: InstallCalico complete (STEP 7)"
 
 }
 # -----------------------------------------------------------------------------
@@ -461,10 +459,12 @@ then
     echo "=============================================================================================="
 
     CreateCluster
-    ConfigureCalicoNetworking
 
     #InstallDashboard
 fi
+
+# Master AND Worker nodes REQUIRE Calico Networking
+InstallCalico
 
 ShowServerSpecifications
 
