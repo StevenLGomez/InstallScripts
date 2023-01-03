@@ -32,7 +32,7 @@
 # You can then start mysql using:
 #     mysql -u root -p
 #
-#     SELECT VERSION():     <== Shows the MariaDB version
+#     SELECT VERSION();     <== Shows the MariaDB version
 #
 #     exit;                 <== Exits & returns to the shell
 #
