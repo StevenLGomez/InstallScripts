@@ -424,7 +424,7 @@ fi
 echo "Applying ACTION_TYPE:  ${ACTION_TYPE}"
 
 #  Start the installation procedure....
-if [ $NODE_TYPE = "INSTALL" ]
+if [ $ACTION_TYPE = "INSTALL" ]
 then
     echo "=============================================================================================="
     echo "======================== Performing MASTER node final configuration =========================="
@@ -444,7 +444,7 @@ then
 fi
 
 #  Install the certificates
-if [ $NODE_TYPE = "INSTALL" ]
+if [ $ACTION_TYPE = "INSTALL" ]
 then
     echo "=============================================================================================="
     echo "======================== Setting up Certificates ============================================="
