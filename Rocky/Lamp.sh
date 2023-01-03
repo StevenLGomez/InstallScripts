@@ -358,14 +358,18 @@ function InstallCertificates
 {
     echo "Function: InstallCertificates starting"
 
-    # Install snapd
+    # Install snapd - from https://snapcraft.io/docs/installing-snap-on-rocky
     dnf -y install snapd
     systemctl enable --now snapd.socket
 
-    systemctl status snapd.seeded.service
-
     # Create 'classic' link for snap
     ln -s /var/lib/snapd/snap /snap
+
+    # Poorly documented, but this step is needed to create 'seed'
+    systemctl status snapd.seeded.service
+
+    # Install certbot - from https://certbot.eff.org/instructions?ws=apache&os=centosrhel8
+    snap install core; snap refresh core
 
     # Check for and remove old version of certbot
     dnf -y remove certbot
@@ -374,7 +378,11 @@ function InstallCertificates
     snap install --classic certbot
     ln -s /snap/bin/certbot /usr/bin/certbot
 
+    # The following step requires user interaction to enter domain information
     certbot --apache
+
+    # The following tests automatic renewal
+    certbot renew --dry-run
 
     echo "Function: InstallCertificates complete"
 }
@@ -427,7 +435,7 @@ echo "Applying ACTION_TYPE:  ${ACTION_TYPE}"
 if [ $ACTION_TYPE = "INSTALL" ]
 then
     echo "=============================================================================================="
-    echo "======================== Performing MASTER node final configuration =========================="
+    echo "======================== Installing LAMP applications ========================================"
     echo "=============================================================================================="
 
     PerformUpdate
@@ -444,7 +452,7 @@ then
 fi
 
 #  Install the certificates
-if [ $ACTION_TYPE = "INSTALL" ]
+if [ $ACTION_TYPE = "ADD_CERTS" ]
 then
     echo "=============================================================================================="
     echo "======================== Setting up Certificates ============================================="
