@@ -145,17 +145,19 @@ function InstallBasicPackages
     dnf install -y git
     dnf install -y wget
     dnf install -y nano
+    dnf install -y unzip
 
     # From: https://www.itsupportwale.com/blog/how-to-install-php-7-3-on-centos-8/
     # Install repositories for access to latest PHP
 #    dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 #    dnf install -y https://rpms.remirepo.net/enterprise/remi-release-8.rpm
     
+    # phpMyAdmin needs to modify SELinux settings
     # The following line is not specifically required, but will show you what package
     # is required to install semanage (for SELinux configuration).
     # It tells you that you will need policycoreutils-python-utils
-#    yum whatprovides semanage
-#    dnf install -y policycoreutils-python-utils
+    yum whatprovides semanage
+    dnf install -y policycoreutils-python-utils
 
     echo "Function: InstallBasicPackages complete"
 }
@@ -176,7 +178,7 @@ function InstallApache
     systemctl enable --now httpd.service
 
     # Make a stub HTML page
-    echo "<h1>Hello Internet World, this is our Apache web server.</h1>" > /var/www/html/index.html
+    echo "<h1>Hello Internet World, this is our Apache/PHP web server.</h1>" > /var/www/html/index.html
 
     # The following shows the status of httpd.service
     systemctl is-enabled httpd.service
@@ -252,19 +254,21 @@ function InstallPhpMyAdmin
     yum -y install php-mysqlnd
     
     # Declare the PhpMyAdmin version desired
-    export VER="4.9.1"
+    export VER="5.2.0"
     
     # Download the version specified above, then extract and relocate
-    curl -o phpMyAdmin-${VER}-english.tar.gz  https://files.phpmyadmin.net/phpMyAdmin/${VER}/phpMyAdmin-${VER}-english.tar.gz
+    #curl -o phpMyAdmin-${VER}-english.tar.gz  https://files.phpmyadmin.net/phpMyAdmin/${VER}/phpMyAdmin-${VER}-english.tar.gz
+    wget https://files.phpmyadmin.net/phpMyAdmin/${VER}/phpMyAdmin-${VER}-english.tar.gz
     tar xvf phpMyAdmin-${VER}-english.tar.gz
     rm phpMyAdmin-*.tar.gz
     mv phpMyAdmin-* /usr/share/phpmyadmin
     
-    # Create directory structure needed by phpMyAdmin
-    mkdir -p /var/lib/phpmyadmin/tmp
-    chown -R apache:apache /var/lib/phpmyadmin
+    # Create directory structure and permissions needed by phpMyAdmin
+    mkdir -p /usr/share/phpmyadmin/tmp
+    chown -R apache:apache /usr/share/phpmyadmin
+    chmod 777 /usr/share/phpmyadmin/tmp
     
-    mkdir /etc/phpmyadmin/
+    #mkdir /etc/phpmyadmin/
     cp /usr/share/phpmyadmin/config.sample.inc.php  /usr/share/phpmyadmin/config.inc.php
     
     # Edit /usr/share/phpmyadmin/config.inc.php
@@ -302,11 +306,10 @@ function InstallPhpMyAdmin
     # Validate Apache configuration - must report 'Syntax OK'
     apachectl configtest
     
-    systemctl restart httpd
-    
     # Set SELinux to allow access to phpMyAdmin page
-    semanage fcontext -a -t httpd_sys_content_t "/usr/share/phpmyadmin(/.*)?"
-    restorecon -Rv /usr/share/phpmyadmin
+    chcon -Rv --type=httpd_sys_content_t /usr/share/phpmyadmin/*
+    
+    systemctl restart httpd
     
     echo "Function: InstallPhpMyAdmin complete"
 }
