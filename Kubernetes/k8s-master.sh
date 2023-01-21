@@ -7,13 +7,11 @@
 
 # Following is from youtube video
 # https://www.centlinux.com/2022/11/install-kubernetes-master-node-rocky-linux.html
-
 #
 # The following site provided information that allowed working around the version clashes with CRI-O & K8S
-#
 # https://hashnode.com/post/install-kubernetes-with-cri-o-container-runtime-on-centos-8-centos-7-cl0oz6cei04p12onv6dtofd3p
 #
-# First pass of VMs created as:
+# ======== VM Configuration ========
 #
 # k-master
 # k-node01
@@ -22,6 +20,8 @@
 # CPU   4
 # RAM   8 GB
 # HD    300 GB thin
+# ==================================
+
 
 
 # #############################################################################
@@ -36,7 +36,7 @@
 #
 function PerformUpdate
 {
-    echo "Function: PerformUpdate starting (STEP 0)"
+    echo "Function: PerformUpdate starting"
 
     dnf makecache --refresh
     dnf -y update
@@ -52,16 +52,16 @@ function PerformUpdate
 #
 function SetPermissiveMode
 {
-    echo "===================================================================================="
-    echo "============== Function: SetPermissiveMode Starting ================================"
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function: SetPermissiveMode Starting"
+    echo "===================================================================="
 
     setenforce 0
     sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
-    echo "===================================================================================="
-    echo "============== Function: SetPermissiveMode Complete ================================"
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function: SetPermissiveMode Complete"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -69,9 +69,9 @@ function SetPermissiveMode
 #
 function ConfigureSysctl
 {
-    echo "===================================================================================="
-    echo "============== Function: ConfigureSysctl Starting   ================================"
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function: ConfigureSysctl Starting"
+    echo "===================================================================="
 
     # Not all examples include iproute-tc
     dnf -y install iproute-tc
@@ -80,16 +80,16 @@ function ConfigureSysctl
     modprobe overlay
     modprobe br_netfilter
 
-    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    echo "CONFIRM STEP: Check kernel module status                                                      "
-    echo "# Output should show single line entry for overlay,                                           "
-    echo "#        and 2 line entry for br_netfilter                                                    "
-    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "CONFIRM STEP: Check kernel module status                            "
+    echo "# Output should show single line entry for overlay,                 "
+    echo "#        and 2 line entry for br_netfilter                          "
+    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
     lsmod | grep overlay
     lsmod | grep br_netfilter
-    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"  
 
-    # Create config file to Automatically load Kernel Modules
+    # Create config file to automatically load Kernel Modules
 cat > /etc/modules-load.d/k8s.conf <<EOF
 overlay
 br_netfilter
@@ -104,16 +104,16 @@ net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 
     # Apply new kernel parameters
-    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    echo "CONFIRM STEP: sysctl --system                                                                 "
-    echo "# Last line of output: Applying /etc/sysctl.conf                                             "
-    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "CONFIRM STEP: sysctl --system                                       "
+    echo "# Last line of output: Applying /etc/sysctl.conf                    "
+    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
     sysctl --system
-    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
-    echo "===================================================================================="
-    echo "============== Function: ConfigureSysctl complete   ================================"
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function: ConfigureSysctl complete"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -121,9 +121,9 @@ EOF
 #
 function DisableSwap
 {
-    echo "===================================================================================="
-    echo "============== Function: DisableSwap Starting       ================================"
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function: DisableSwap Starting"
+    echo "===================================================================="
 
     swapoff -a
     sed -e '/.* none.* swap.*/ s/^#*/#/' -i /etc/fstab
@@ -132,19 +132,19 @@ function DisableSwap
     cat /proc/swaps
 
     # Check swap using free command
-    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    echo "CONFIRM STEP: DisableSwap                                                                     "
-    echo "# Swap: line should show all zeros                                                            "
-    echo "# Should be no entries below Filename line                                                    "
-    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "CONFIRM STEP: DisableSwap                                           "
+    echo "# Swap: line should show all zeros                                  "
+    echo "# Should be no entries below Filename line                          "
+    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
     free -m
     echo ""
     cat /proc/swaps
-    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
-    echo "===================================================================================="
-    echo "============== Function: DisableSwap complete       ================================"
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function: DisableSwap complete"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -153,16 +153,11 @@ function DisableSwap
 # Alternate method from:
 # https://hashnode.com/post/install-kubernetes-with-cri-o-container-runtime-on-centos-8-centos-7-cl0oz6cei04p12onv6dtofd3p
 #
-# To test operation, add admin account using visudo (if RH derivative)
-# sudo crictl pull hello-world:latest
-# sudo crictl pull alpine:latest
-# sudo crictl images   <== Should show both images pulled above
-#
 function InstallCRIO
 {
-    echo "===================================================================================="
-    echo "============== Function: InstallCRIO Starting         =============================="
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "====== Function: InstallCRIO Starting         ======================"
+    echo "===================================================================="
 
     # At time of this installation, 1.26 was not available in repos.
     # Therefore CRIO is one major revision behind k8s.
@@ -186,9 +181,14 @@ function InstallCRIO
     systemctl enable --now crio
     systemctl start crio
 
-    echo "===================================================================================="
-    echo "============== Function: InstallCRIO complete         =============================="
-    echo "===================================================================================="
+    # To test operation, add admin account using visudo (if RH derivative)
+    # sudo crictl pull hello-world:latest
+    # sudo crictl pull alpine:latest
+    # sudo crictl images   <== Should show both images pulled above
+
+    echo "===================================================================="
+    echo "Function: InstallCRIO complete"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -197,14 +197,14 @@ function InstallCRIO
 #
 function ConfigureFirewall
 {
-    echo "===================================================================================="
-    echo "============== Function: ConfigureFirewall Starting   =============================="
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function: ConfigureFirewall Starting"
+    echo "===================================================================="
 
-    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    echo "CONFIRM STEP: ConfigureFirewall                                                               "
-    echo "# All steps should report 'success'                                                           "
-    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "CONFIRM STEP: ConfigureFirewall"
+    echo "# All steps should report 'success'"
+    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
 
     # From 'Control Plane' list : https://kubernetes.io/docs/reference/ports-and-protocols/
     # TCP Inbound	2379-2380	etcd Server Cleint API	kube-apiserver, etcd
@@ -218,9 +218,10 @@ function ConfigureFirewall
     firewall-cmd --zone=public --add-service=etcd-server --permanent       # Kubernetes etcd Server API (port 2380)
 
     firewall-cmd --add-port=10250/tcp --permanent                          # Self, Control plane
-    firewall-cmd --add-port=10251,10259/tcp --permanent                    # Self, kube-scheduler
-    firewall-cmd --add-port=10252,10257/tcp --permanent                    # Self, kube-controller-manager
+    firewall-cmd --add-port={10251,10259}/tcp --permanent                  # Self, kube-scheduler
+    firewall-cmd --add-port={10252,10257}/tcp --permanent                  # Self, kube-controller-manager
 
+    # Duplicate of above ? etcd-client & etcd-server
     firewall-cmd --add-port={2379,2380}/tcp --permanent                    # kube-apiserver, etcd
 
     firewall-cmd --add-port=5473/tcp --permanent                           # ?
@@ -229,18 +230,18 @@ function ConfigureFirewall
     firewall-cmd --add-port={8285,8472}/udp --permanent                    # ?
 
     # Ports for Calico CNI - needed for all nodes
-    firewall-cmd --add-port=179/tcp --permanent                             # ?
-    firewall-cmd --add-port=4789/tcp --permanent                            # ?
+    firewall-cmd --add-port=179/tcp --permanent                            # ?
+    firewall-cmd --add-port=4789/tcp --permanent                           # ?
 
-    firewall-cmd --add-masquerade --permanent                               # Associated with CRI-O ?
+    firewall-cmd --add-masquerade --permanent                              # Associated with CRI-O ?
 
     # apply changes
     firewall-cmd --reload
-    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
-    echo "===================================================================================="
-    echo "============== Function: ConfigureFirewall complete   =============================="
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function: ConfigureFirewall complete"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -256,9 +257,9 @@ function ConfigureFirewall
 #
 function InstallKubernetes
 {
-    echo "===================================================================================="
-    echo "============== Function: InstallKubernetes Starting ================================"
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function: InstallKubernetes Starting"
+    echo "===================================================================="
 
     # Note - HERE Docs must be on column zero.
 
@@ -273,14 +274,14 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 
-    echo "===================================================================================="
-    echo "============== Installing Kubernetes Components ===================================="
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Installing Kubernetes Components"
+    echo "===================================================================="
     dnf -y install kubelet kubeadm kubectl --disableexcludes=kubernetes
 
-    echo "===================================================================================="
-    echo "============== kubeadm configuration (pull images) ================================="
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "kubeadm configuration (pull images)"
+    echo "===================================================================="
 
     # Download container images required to create k8s cluster
     kubeadm config images pull
@@ -289,23 +290,21 @@ EOF
     # source <(kubectl completion bash)
     # kubectl completion bash > /etc/bash_completion.d/kubectl
 
-    echo "===================================================================================="
-    echo "============== Function: InstallKubernetes complete ================================"
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function: InstallKubernetes complete"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
 # #############################################################################
-#
-# Updating to use install information from https://projectcalico
-#
+# Use install information from https://projectcalico
 # https://projectcalico.docs.tigera.io/getting-started/kubernetes/self-managed-onprem/onpremises#install-calico
 #
 function InstallCalico
 {
-    echo "===================================================================================="
-    echo "============== Function: InstallCalico Starting     ================================"
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function: InstallCalico Starting"
+    echo "===================================================================="
 
     # Perform installation using the Operator method from the site noted above
     kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/tigera-operator.yaml
@@ -322,9 +321,9 @@ function InstallCalico
     # This should succeed, with the calico-* items showing STATUS = Pending
     kubectl get pods -n-kube-system
 
-    echo "===================================================================================="
-    echo "============== Function: InstallCalico finished     ================================"
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function: InstallCalico finished"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -334,9 +333,9 @@ function InstallCalico
 #
 function InitializeCluster
 {
-    echo "===================================================================================="
-    echo "============== kubeadm initialization starting ====================================="
-    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Function InitializeCluster Starting"
+    echo "===================================================================="
 
     # Initialize to use Classless Inter-Domain Routing (CIDR)
     kubeadm init --pod-network-cidr=192.168.0.0/16
@@ -349,36 +348,21 @@ function InitializeCluster
     cp -i /etc/kubernetes/admin.conf /home/admin/.kube/config
     chown -R admin:admin /home/admin/.kube/config
 
-#    echo "===================================================================================="
-#    echo "============== Starting kubelet ===================================================="
-#    echo "===================================================================================="
+    echo "===================================================================="
+    echo "Starting kubelet"
+    echo "===================================================================="
+    systemctl enable --now kubelet
+    systemctl start kubelet
 
-#    # Enable kubelet service
-#    systemctl enable --now kubelet
-#    systemctl start kubelet
-#    #systemctl status kubelet  # <== Can be used to check status, but hangs script (must enter q to continue)
-#
-#    if [ $NODE_TYPE = "MASTER" ]
-#    then
-#
-#	# Set KUBECONFIG variable for all sessions
-#	echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile.d/k8s.sh
-#
-#        # Setup permissions for admin user
-#        mkdir -p /home/admin/.kube
-#        cp -i /etc/kubernetes/admin.conf /home/admin/.kube/config
-#        chown -R admin:admin /home/admin/.kube/config
-#
-#        # This should suceed, displaying k-master as the control-plane
-#        kubectl get nodes
-#
-#	# And display custer information
-#	kubectl cluster-info
-#    fi
+    # This should suceed, displaying k-master as the control-plane
+    kubectl get nodes
 
-    echo "===================================================================================="
-    echo "============== kubeadm initialization finished ====================================="
-    echo "===================================================================================="
+    #And display custer information
+    kubectl cluster-info
+
+    echo "===================================================================="
+    echo "kubeadm initialization finished"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -393,7 +377,7 @@ function InitializeCluster
 #
 function InstallDashboard
 {
-    echo "Function: InstallDashboard starting (STEP 8)"
+    echo "Function: InstallDashboard starting"
 
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
 
@@ -401,7 +385,7 @@ function InstallDashboard
     echo "Kubernetes Dashboard will be available:"
     echo "http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/"
 
-    echo "Function: InstallDashboard complete (STEP 8)"
+    echo "Function: InstallDashboard complete"
 }
 # -----------------------------------------------------------------------------
 
@@ -409,7 +393,7 @@ function InstallDashboard
 #
 function ShowServerSpecifications
 {
-    echo "#############################################################################"
+    echo "####################################################################"
     echo "Basic specifications of this machine:"
     echo "Memory:"
     free -h
@@ -420,7 +404,7 @@ function ShowServerSpecifications
     echo "CPU Cores:"
     egrep ^processor /proc/cpuinfo | wc -l
 
-    echo "#############################################################################"
+    echo "####################################################################"
 }
 # -----------------------------------------------------------------------------
 
@@ -428,9 +412,9 @@ function ShowServerSpecifications
 #
 function Spare_Function
 {
-    echo "Function: ZOT starting (STEP 1)"
+    echo "Function: Spare_Function starting"
 
-    echo "Function: ZOT complete (STEP 1)"
+    echo "Function: Spare_Function complete"
 }
 # -----------------------------------------------------------------------------
 
@@ -442,8 +426,6 @@ function Spare_Function
 # =============================================================================
 
 echo "Applying MASTER Node settings to installation"
-
-#  Start the installation procedure....
 
 PerformUpdate     # Some references recommend reboot after this step
 
