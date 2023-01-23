@@ -10,55 +10,14 @@
 
 #
 # The following site provided information that allowed working around the version clashes with CRI-O & K8S
-#
 # https://hashnode.com/post/install-kubernetes-with-cri-o-container-runtime-on-centos-8-centos-7-cl0oz6cei04p12onv6dtofd3p
 #
-# First pass of VMs created as:
-#
-# k-master
-# k-node01
-# k-node02
-#
-# CPU   4
-# RAM   8 GB
-# HD    300 GB thin
-
-
-# #############################################################################
-#
-# POST Installation Instructions
-#
-# #############################################################################
-# To start using your cluster, you need to run the following as a regular user:
-# mkdir -p $HOME/.kube
-# sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-# sudo chown $(id -u):$(id -g) $HOME/.kube/config
-#
-# You should now deploy a pod network to the cluster.
-# run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
-#    https://kubernetes.io/docs/concepts/cluster-administration/addons/
-
-# Component versions defined here:
-# https://graspingtech.com/install-kubernetes-rhel-8/
-# Kubernetes v1.21.2
-# CRI-O v1.21.1
-# Calico
-
-# Per Red Hat Support information, https://access.redhat.com/solutions/4870701
-# OpenShift 4.11 uses these versions (as of October 3, 2022):
-#CRIO_VERSION=1.24
-#K8S_VERSION=v1.24
-
-# But the versions noted above do not install properly on RHEL 8, so revert to these:
-CRIO_VERSION=1.25 # <<==  At time of this installation, 1.26 was not available in repos
-# not used K8S_VERSION=v1.25
-
 
 # #############################################################################
 #
 function PerformUpdate
 {
-    echo "Function: PerformUpdate starting (STEP 0)"
+    echo "Function: PerformUpdate starting"
 
     dnf makecache --refresh
     dnf -y update
@@ -74,16 +33,16 @@ function PerformUpdate
 #
 function SetPermissiveMode
 {
-    echo "=============================================================================================="
-    echo "======================== Function: SetPermissiveMode Starting ================================"
-    echo "=============================================================================================="
+    echo "===================================================================="
+    echo "Function: SetPermissiveMode Starting"
+    echo "===================================================================="
 
     setenforce 0
     sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
-    echo "=============================================================================================="
-    echo "======================== Function: SetPermissiveMode Complete ================================"
-    echo "=============================================================================================="
+    echo "===================================================================="
+    echo "Function: SetPermissiveMode Complete"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -91,9 +50,9 @@ function SetPermissiveMode
 #
 function ConfigureSysctl
 {
-    echo "=============================================================================================="
-    echo "======================== Function: ConfigureSysctl Starting   ================================"
-    echo "=============================================================================================="
+    echo "===================================================================="
+    echo "Function: ConfigureSysctl Starting"
+    echo "===================================================================="
 
     # Not all examples include iproute-tc
     dnf -y install iproute-tc
@@ -102,16 +61,16 @@ function ConfigureSysctl
     modprobe overlay
     modprobe br_netfilter
 
-    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
     echo "CONFIRM STEP: Check kernel module status                                                      "
     echo "# Output should show single line entry for overlay,                                           "
     echo "#        and 2 line entry for br_netfilter                                                    "
-    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
+    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
     lsmod | grep overlay
     lsmod | grep br_netfilter
-    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
-    # Create config file to Automatically load Kernel Modules
+    # Create config file to automatically load Kernel Modules
 cat > /etc/modules-load.d/k8s.conf <<EOF
 overlay
 br_netfilter
@@ -126,16 +85,16 @@ net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 
     # Apply new kernel parameters
-    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
     echo "CONFIRM STEP: sysctl --system                                                                 "
     echo "# Last line of output: Applying /etc/sysctl.conf                                             "
-    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
+    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
     sysctl --system
-    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
-    echo "=============================================================================================="
-    echo "======================== Function: ConfigureSysctl complete   ================================"
-    echo "=============================================================================================="
+    echo "===================================================================="
+    echo "Function: ConfigureSysctl complete"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -143,7 +102,9 @@ EOF
 #
 function DisableSwap
 {
-    echo "Function: DisableSwap starting (STEP 1)"
+    echo "===================================================================="
+    echo "Function: DisableSwap Starting"
+    echo "===================================================================="
 
     swapoff -a
     sed -e '/.* none.* swap.*/ s/^#*/#/' -i /etc/fstab
@@ -152,14 +113,19 @@ function DisableSwap
     cat /proc/swaps
 
     # Check swap using free command
-    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
     echo "CONFIRM STEP: DisableSwap                                                                     "
     echo "# Swap: line should show all zeros                                                           "
-    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
+    echo "# Should be no entries below Filename line                          "
+    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
     free -m
-    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    echo ""
+    cat /proc/swaps
+    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
-    echo "Function: DisableSwap complete (STEP 1)"
+    echo "===================================================================="
+    echo "Function: DisableSwap complete"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -168,20 +134,19 @@ function DisableSwap
 # Alternate method from:
 # https://hashnode.com/post/install-kubernetes-with-cri-o-container-runtime-on-centos-8-centos-7-cl0oz6cei04p12onv6dtofd3p
 #
-# To test operation, add admin account using visudo (if RH derivative)
-# sudo crictl pull hello-world:latest
-# sudo crictl pull alpine:latest
-# sudo crictl images   <== Should show both images pulled above
-#
 function InstallCRIO
 {
-    echo "=============================================================================================="
-    echo "======================== Function: InstallCRIO Starting         =============================="
-    echo "=============================================================================================="
+    echo "===================================================================="
+    echo "====== Function: InstallCRIO Starting         ======================"
+    echo "===================================================================="
+
+    # At time of this installation, 1.26 was not available in repos.
+    # Therefore CRIO is one major revision behind k8s.
+    export CRIO_VERSION=1.25
+    export OS=CentOS_8
 
     # Define OS per installation instructions on https://cri-o.io
     # NOTE that the URLs provided seemed to have extraneous slashes that were breaking the download of the repos
-    export OS=CentOS_8
 
     curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo \
 	https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/${OS}/devel:kubic:libcontainers:stable.repo
@@ -197,9 +162,14 @@ function InstallCRIO
     systemctl enable --now crio
     systemctl start crio
 
-    echo "=============================================================================================="
-    echo "======================== Function: InstallCRIO complete         =============================="
-    echo "=============================================================================================="
+    # To test operation, add admin account using visudo (if RH derivative)
+    # sudo crictl pull hello-world:latest
+    # sudo crictl pull alpine:latest
+    # sudo crictl images   <== Should show both images pulled above
+
+    echo "===================================================================="
+    echo "Function: InstallCRIO complete"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -208,33 +178,28 @@ function InstallCRIO
 #
 function ConfigureFirewall
 {
-    echo "=============================================================================================="
-    echo "======================== Function: ConfigureFirewall Starting   =============================="
-    echo "=============================================================================================="
+    echo "===================================================================="
+    echo "Function: ConfigureFirewall Starting"
+    echo "===================================================================="
 
-    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
     echo "CONFIRM STEP: ConfigureFirewall                                                               "
     echo "# All steps should report 'success'                                                           "
-    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
-    # From 'Worker Node' list : https://kubernetes.io/docs/reference/ports-and-protocols/
-    # TCP Inbound	10250		Kubelet API		Self, Control Plane
-    # TCP Inbound	30000-32767	NodePort Services	All
+    echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
 
-    firewall-cmd --add-port={10250,30000-32767,5473,5473}/tcp --permanent
-    firewall-cmd --add-port={4789,8285,8472}/udp --permanent
+    # Worker Node ports
+    firewall-cmd --add-port=10250/tcp --permanent            # Self, Control plane
+    firewall-cmd --add-port=30000-32767/tcp --permanent      # Port range used for NodePort Services
 
-    # Ports for Calico CNI - needed for all nodes
-    firewall-cmd --add-port=179/tcp --permanent
-    firewall-cmd --add-port=2379/tcp --permanent
-    firewall-cmd --add-port=4789/tcp --permanent
+    firewall-cmd --add-masquerade --permanent                # Associated with CRI-O ?
 
     # apply changes
     firewall-cmd --reload
-    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
-    echo "=============================================================================================="
-    echo "======================== Function: ConfigureFirewall complete   =============================="
-    echo "=============================================================================================="
+    echo "===================================================================="
+    echo "Function: ConfigureFirewall complete"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -250,7 +215,9 @@ function ConfigureFirewall
 #
 function InstallKubernetes
 {
-    echo "Function: InstallKubernetes starting (STEP 6), alternate method"
+    echo "===================================================================="
+    echo "Function: InstallKubernetes Starting"
+    echo "===================================================================="
 
     # Note - HERE Docs must be on column zero.
 
@@ -265,14 +232,14 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 
-    echo "=============================================================================================="
-    echo "======================== Installing Kubernetes Components ===================================="
-    echo "=============================================================================================="
+    echo "===================================================================="
+    echo "Installing Kubernetes Components"
+    echo "===================================================================="
     dnf -y install kubelet kubeadm kubectl --disableexcludes=kubernetes
 
-    echo "=============================================================================================="
-    echo "======================== kubeadm configuration (pull images) ================================="
-    echo "=============================================================================================="
+    echo "===================================================================="
+    echo "kubeadm configuration (pull images)"
+    echo "===================================================================="
 
     # Download container images required to create k8s cluster
     kubeadm config images pull
@@ -281,32 +248,40 @@ EOF
     # source <(kubectl completion bash)
     # kubectl completion bash > /etc/bash_completion.d/kubectl
 
-    echo "Function: InstallKubernetes complete (STEP 6)"
+    echo "===================================================================="
+    echo "Function: InstallKubernetes complete"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
 # #############################################################################
-#
-# See information from: https://adamtheautomator.com/cri-o/
-#
-# https://www.golinuxcloud.com/calico-kubernetes/
-# https://www.golinuxcloud.com/deploy-multi-node-k8s-cluster-rocky-linux-8/#Step_1_Prepare_the_Kubernetes_Cluster
-#
-# https://github.com/cri-o/cri-o/blob/main/install.md#other-yum-based-operating-systems
+# Use install information from https://projectcalico
+# https://projectcalico.docs.tigera.io/getting-started/kubernetes/self-managed-onprem/onpremises#install-calico
 #
 function InstallCalico
 {
-    echo "Function: InstallCalico starting (STEP 7)"
+    echo "===================================================================="
+    echo "Function: InstallCalico Starting"
+    echo "===================================================================="
 
-    # Download calico.yaml - can optionally edit it here as well before applying
-    curl https://docs.projectcalico.org/manifests/calico.yaml -O
+    # Perform installation using the Operator method from the site noted above
+    kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/tigera-operator.yaml
+    curl https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/custom-resources.yaml -O
 
-    kubectl apply -f calico.yaml
+    kubectl create -f custom-resources.yaml
+
+    # Install calicoctl
+    pushd /usr/bin
+    curl -L https://github.com/projectcalico/calico/releases/download/v3.25.0/calicoctl-linux-amd64 -o calicoctl
+    chmod +x ./calicoctl
+    popd
 
     # This should succeed, with the calico-* items showing STATUS = Pending
     kubectl get pods -n-kube-system
 
-    echo "Function: InstallCalico complete (STEP 7)"
+    echo "===================================================================="
+    echo "Function: InstallCalico finished"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -316,43 +291,36 @@ function InstallCalico
 #
 function InitializeCluster
 {
-    echo "Function: InitializeCluster starting (STEP 7)"
-
-    echo "=============================================================================================="
-    echo "======================== kubeadm initialization starting ====================================="
-    echo "=============================================================================================="
+    echo "===================================================================="
+    echo "Function InitializeCluster Starting"
+    echo "===================================================================="
 
     # Initialize to use Classless Inter-Domain Routing (CIDR)
     kubeadm init --pod-network-cidr=192.168.0.0/16
 
-    echo "=============================================================================================="
-    echo "======================== Starting kubelet ===================================================="
-    echo "=============================================================================================="
+    # Export KUBECONFIG - required for remaining configuration steps
+    export KUBECONFIG=/etc/kubernetes/admin.conf
 
-    # Enable kubelet service
+    # Setup permissions for admin user
+    mkdir -p /home/admin/.kube
+    cp -i /etc/kubernetes/admin.conf /home/admin/.kube/config
+    chown -R admin:admin /home/admin/.kube/config
+
+    echo "===================================================================="
+    echo "Starting kubelet"
+    echo "===================================================================="
     systemctl enable --now kubelet
     systemctl start kubelet
-    #systemctl status kubelet  # <== Can be used to check status, but hangs script (must enter q to continue)
 
-#    if [ $NODE_TYPE = "MASTER" ]
-#    then
-#
-#	# Set KUBECONFIG variable for all sessions
-#	echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile.d/k8s.sh
-#
-#        # Setup permissions for admin user
-#        mkdir -p /home/admin/.kube
-#        cp -i /etc/kubernetes/admin.conf /home/admin/.kube/config
-#        chown -R admin:admin /home/admin/.kube/config
-#
-#        # This should suceed, displaying k-master as the control-plane
-#        kubectl get nodes
-#
-#	# And display custer information
-#	kubectl cluster-info
-#    fi
+    # This should suceed, displaying k-master as the control-plane
+    kubectl get nodes
 
-    echo "Function: InitializeCluster complete (STEP 7)"
+    #And display custer information
+    kubectl cluster-info
+
+    echo "===================================================================="
+    echo "kubeadm initialization finished"
+    echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
@@ -367,15 +335,15 @@ function InitializeCluster
 #
 function InstallDashboard
 {
-    echo "Function: InstallDashboard starting (STEP 8)"
+    echo "Function: InstallDashboard starting"
 
-    kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.6.1/aio/deploy/recommended.yaml
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
 
     echo "After running kubectl proxy"
     echo "Kubernetes Dashboard will be available:"
     echo "http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/"
 
-    echo "Function: InstallDashboard complete (STEP 8)"
+    echo "Function: InstallDashboard complete"
 }
 # -----------------------------------------------------------------------------
 
@@ -383,7 +351,7 @@ function InstallDashboard
 #
 function ShowServerSpecifications
 {
-    echo "#############################################################################"
+    echo "####################################################################"
     echo "Basic specifications of this machine:"
     echo "Memory:"
     free -h
@@ -394,17 +362,17 @@ function ShowServerSpecifications
     echo "CPU Cores:"
     egrep ^processor /proc/cpuinfo | wc -l
 
-    echo "#############################################################################"
+    echo "####################################################################"
 }
 # -----------------------------------------------------------------------------
 
 # #############################################################################
 #
-function Spare_Function
+function RemoveTaints
 {
-    echo "Function: ZOT starting (STEP 1)"
+    echo "Function: RemoveTaints starting"
 
-    echo "Function: ZOT complete (STEP 1)"
+    echo "Function: RemoveTaints complete"
 }
 # -----------------------------------------------------------------------------
 
@@ -415,30 +383,20 @@ function Spare_Function
 # =============================================================================
 # =============================================================================
 
-echo "Applying WORKER Node settings to installation"
-
-#  Start the installation procedure....
+echo "Applying MASTER Node settings to installation"
 
 PerformUpdate   # Some references recommend reboot after this step
 
 SetPermissiveMode # Disables SELinux
-DisableSwap
+DisableSwap       #
 
 ConfigureSysctl
 
 ConfigureFirewall
-InstallCRIO
-
-exit
-
+InstallCRIO     # << Needed by kubeadm
 InstallKubernetes
-
-# Master AND Worker nodes REQUIRE Calico Networking - kubectl is used for configuration
+#InitializeCluster
 InstallCalico
 
-InitializeCluster
-
-#InstallDashboard # Master only
-
-ShowServerSpecifications
+RemoveTaints
 

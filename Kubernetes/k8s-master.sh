@@ -7,30 +7,11 @@
 
 # Following is from youtube video
 # https://www.centlinux.com/2022/11/install-kubernetes-master-node-rocky-linux.html
+
 #
 # The following site provided information that allowed working around the version clashes with CRI-O & K8S
 # https://hashnode.com/post/install-kubernetes-with-cri-o-container-runtime-on-centos-8-centos-7-cl0oz6cei04p12onv6dtofd3p
 #
-# ======== VM Configuration ========
-#
-# k-master
-# k-node01
-# k-node02
-#
-# CPU   4
-# RAM   8 GB
-# HD    300 GB thin
-# ==================================
-
-
-
-# #############################################################################
-#
-# POST Installation Instructions
-#
-# #############################################################################
-
-
 
 # #############################################################################
 #
@@ -81,13 +62,13 @@ function ConfigureSysctl
     modprobe br_netfilter
 
     echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    echo "CONFIRM STEP: Check kernel module status                            "
-    echo "# Output should show single line entry for overlay,                 "
-    echo "#        and 2 line entry for br_netfilter                          "
+    echo "CONFIRM STEP: Check kernel module status                                                      "
+    echo "# Output should show single line entry for overlay,                                           "
+    echo "#        and 2 line entry for br_netfilter                                                    "
     echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
     lsmod | grep overlay
     lsmod | grep br_netfilter
-    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"  
+    echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
     # Create config file to automatically load Kernel Modules
 cat > /etc/modules-load.d/k8s.conf <<EOF
@@ -105,8 +86,8 @@ EOF
 
     # Apply new kernel parameters
     echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    echo "CONFIRM STEP: sysctl --system                                       "
-    echo "# Last line of output: Applying /etc/sysctl.conf                    "
+    echo "CONFIRM STEP: sysctl --system                                                                 "
+    echo "# Last line of output: Applying /etc/sysctl.conf                                             "
     echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
     sysctl --system
     echo "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
@@ -133,9 +114,9 @@ function DisableSwap
 
     # Check swap using free command
     echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    echo "CONFIRM STEP: DisableSwap                                           "
-    echo "# Swap: line should show all zeros                                  "
-    echo "# Should be no entries below Filename line                          "
+    echo "CONFIRM STEP: DisableSwap                                                                     "
+    echo "# Swap: line should show all zeros                                                            "
+    echo "# Should be no entries below Filename line                                                    "
     echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
     free -m
     echo ""
@@ -202,8 +183,8 @@ function ConfigureFirewall
     echo "===================================================================="
 
     echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    echo "CONFIRM STEP: ConfigureFirewall"
-    echo "# All steps should report 'success'"
+    echo "CONFIRM STEP: ConfigureFirewall                                                               "
+    echo "# All steps should report 'success'                                                           "
     echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
 
     # From 'Control Plane' list : https://kubernetes.io/docs/reference/ports-and-protocols/
@@ -218,8 +199,8 @@ function ConfigureFirewall
     firewall-cmd --zone=public --add-service=etcd-server --permanent       # Kubernetes etcd Server API (port 2380)
 
     firewall-cmd --add-port=10250/tcp --permanent                          # Self, Control plane
-    firewall-cmd --add-port={10251,10259}/tcp --permanent                  # Self, kube-scheduler
-    firewall-cmd --add-port={10252,10257}/tcp --permanent                  # Self, kube-controller-manager
+    firewall-cmd --add-port={10251,10259}/tcp --permanent                    # Self, kube-scheduler
+    firewall-cmd --add-port={10252,10257}/tcp --permanent                    # Self, kube-controller-manager
 
     # Duplicate of above ? etcd-client & etcd-server
     firewall-cmd --add-port={2379,2380}/tcp --permanent                    # kube-apiserver, etcd
@@ -230,10 +211,15 @@ function ConfigureFirewall
     firewall-cmd --add-port={8285,8472}/udp --permanent                    # ?
 
     # Ports for Calico CNI - needed for all nodes
-    firewall-cmd --add-port=179/tcp --permanent                            # ?
-    firewall-cmd --add-port=4789/tcp --permanent                           # ?
+    firewall-cmd --add-port=179/tcp --permanent                             # ?
+    firewall-cmd --add-port=4789/tcp --permanent                            # ?
 
-    firewall-cmd --add-masquerade --permanent                              # Associated with CRI-O ?
+    # The following "may" be needed for each worker node that is intended to be connected to this master
+    # firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=ipv4 source address=10.17.20.116/32 accept'
+    # firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=ipv4 source address=10.17.20.117/32 accept'
+    # ===============================================================================================================
+
+    firewall-cmd --add-masquerade --permanent                               # Associated with CRI-O ?
 
     # apply changes
     firewall-cmd --reload
@@ -279,12 +265,8 @@ EOF
     echo "===================================================================="
     dnf -y install kubelet kubeadm kubectl --disableexcludes=kubernetes
 
-    echo "===================================================================="
-    echo "kubeadm configuration (pull images)"
-    echo "===================================================================="
-
-    # Download container images required to create k8s cluster
-    kubeadm config images pull
+    # Display version of kubectl
+    kubectl version --client
 
     # Optional items, as placeholders for now - enables bash completion in kubectl commands
     # source <(kubectl completion bash)
@@ -305,6 +287,10 @@ function InstallCalico
     echo "===================================================================="
     echo "Function: InstallCalico Starting"
     echo "===================================================================="
+
+    # Export KUBECONFIG - required for remaining initialization steps
+    # Duplicated here for script restarts
+    export KUBECONFIG=/etc/kubernetes/admin.conf
 
     # Perform installation using the Operator method from the site noted above
     kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/tigera-operator.yaml
@@ -331,28 +317,36 @@ function InstallCalico
 #
 # Cluster creation performed using kubeadm
 #
-function InitializeCluster
+function InitializeControlPlane
 {
     echo "===================================================================="
-    echo "Function InitializeCluster Starting"
+    echo "Function InitializeControlPlane Starting"
     echo "===================================================================="
-
-    # Initialize to use Classless Inter-Domain Routing (CIDR)
-    kubeadm init --pod-network-cidr=192.168.0.0/16
-
-    # Export KUBECONFIG - required for remaining configuration steps
-    export KUBECONFIG=/etc/kubernetes/admin.conf
-
-    # Setup permissions for admin user
-    mkdir -p /home/admin/.kube
-    cp -i /etc/kubernetes/admin.conf /home/admin/.kube/config
-    chown -R admin:admin /home/admin/.kube/config
 
     echo "===================================================================="
     echo "Starting kubelet"
     echo "===================================================================="
     systemctl enable --now kubelet
     systemctl start kubelet
+
+    echo "===================================================================="
+    echo "kubeadm configuration (images pull)"
+    echo "===================================================================="
+    kubeadm config images pull
+
+    # Export KUBECONFIG - required for remaining initialization steps
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
+    echo "===================================================================="
+    echo "kubeadm init"
+    echo "===================================================================="
+    # kubeadm init --pod-network-cidr=192.168.0.0/16
+    kubeadm init --pod-network-cidr=192.168.0.0/16 --control-plane-endpoint=$HOSTNAME
+
+    # Setup permissions for admin user
+    mkdir -p /home/admin/.kube
+    cp -i /etc/kubernetes/admin.conf /home/admin/.kube/config
+    chown -R admin:admin /home/admin/.kube/config
 
     # This should suceed, displaying k-master as the control-plane
     kubectl get nodes
@@ -362,6 +356,10 @@ function InitializeCluster
 
     echo "===================================================================="
     echo "kubeadm initialization finished"
+    echo "===================================================================="
+
+    echo "===================================================================="
+    echo "Function InitializeControlPlane finished"
     echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
@@ -437,8 +435,9 @@ ConfigureFirewall
 
 InstallCRIO     # << Needed by kubeadm
 InstallKubernetes
-InitializeCluster
-InstallCalico
+
+#InitializeControlPlane
+#InstallCalico
 
 #InstallDashboard
 #ShowServerSpecifications
