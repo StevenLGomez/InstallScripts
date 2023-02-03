@@ -72,23 +72,24 @@ The command output from above should show __preflight__ and __kubelet_start__ in
 
 Back on __master__, if no errors were displayed on the initializing node, you can watch its initialization using __kubectl get nodes__.
 
-### Removing worker nodes from cluster
+### Helpful addons
+
+Since the YAML syntax can be pretty persnickity, you might want to install yamllint using __python3 -m pip install --user yamllint__
+
+See documentation [here](https://www.redhat.com/sysadmin/check-yaml-yamllint)
+There is also an online version [here](https://www.yamllint.com)
+
+
+### Removing worker nodes from cluster - USE WITH EXTREME CAUTION
 
 First drain any active pods from the worker node (I think this is all done on the control plane)
 
-__kubectl drain <node-name> --delete-local-data --ignore-daemonsets__
+__kubectl drain <node-name> --delete-emptydir-data --ignore-daemonsets__
 
 Prevent a node from starrting new pods - mark as unschedulable
 
 __kubectl cordon <node-name>__
 
 Then on the working node being removed, revert the previous join changes using __sudo kubeadm reset__.
-
-### Helpful addons
-
-Since the YAML syntax can be pretty persnickity, you might want to install yamllint using __python3 -m pip install --user yamllint__
-
-See documentation [here](https://www.redhat.com/sysadmin/check-yaml-yamllint)
-Also see online version [here](https://www.yamllint.com)
 
 

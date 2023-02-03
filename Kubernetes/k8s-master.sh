@@ -137,7 +137,7 @@ function DisableSwap
 function InstallCRIO
 {
     echo "===================================================================="
-    echo "====== Function: InstallCRIO Starting         ======================"
+    echo "====== Function: InstallCRIO Starting"
     echo "===================================================================="
 
     # At time of this installation, 1.26 was not available in repos.
@@ -217,7 +217,7 @@ function ConfigureFirewall
     # The following "may" be needed for each worker node that is intended to be connected to this master
     # firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=ipv4 source address=10.17.20.116/32 accept'
     # firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=ipv4 source address=10.17.20.117/32 accept'
-    # ===============================================================================================================
+    # ======================================================================
 
     firewall-cmd --add-masquerade --permanent                               # Associated with CRI-O ?
 
