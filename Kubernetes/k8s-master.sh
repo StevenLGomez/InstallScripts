@@ -279,8 +279,11 @@ EOF
 # -----------------------------------------------------------------------------
 
 # #############################################################################
-# Use install information from https://projectcalico
+# Use install information from:
 # https://projectcalico.docs.tigera.io/getting-started/kubernetes/self-managed-onprem/onpremises#install-calico
+#
+# Note that the link above redirects to:
+# https://docs.tigera.io/calico/3.25/getting-started/kubernetes/self-managed-onprem/onpremises#install-calico
 #
 function InstallCalico
 {
@@ -293,12 +296,18 @@ function InstallCalico
     export KUBECONFIG=/etc/kubernetes/admin.conf
 
     # Perform installation using the Operator method from the site noted above
+
+    # First, install the operator on your cluster
     kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/tigera-operator.yaml
+
+    # Second, download the custom resources necessary to configure Calico
     curl https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/custom-resources.yaml -O
 
+    # Third, Create the manifest in order toinstall Calico
     kubectl create -f custom-resources.yaml
 
-    # Install calicoctl
+    # Install calicoctl binary - https://docs.tigera.io/calico/3.25/operations/calicoctl/install
+    # Basically just download it to alocation in your path with curl, then make it executable
     pushd /usr/bin
     curl -L https://github.com/projectcalico/calico/releases/download/v3.25.0/calicoctl-linux-amd64 -o calicoctl
     chmod +x ./calicoctl
@@ -363,6 +372,24 @@ function InitializeControlPlane
     echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
+
+# #############################################################################
+#
+# https://istio.io/latest/docs/setup/getting-started/
+#
+function InstallIstio
+{
+    echo "===================================================================="
+    echo "Function InstallIstio Starting"
+    echo "===================================================================="
+
+
+    echo "===================================================================="
+    echo "Function InstallIstio finished"
+    echo "===================================================================="
+}
+# -----------------------------------------------------------------------------
+
 
 # #############################################################################
 # https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
@@ -437,7 +464,7 @@ InstallCRIO     # << Needed by kubeadm
 InstallKubernetes
 
 #InitializeControlPlane
-#InstallCalico
+#InstallCalico      # Uses kubectl
 
 #InstallDashboard
 #ShowServerSpecifications
