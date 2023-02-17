@@ -322,7 +322,7 @@ function InstallCalico
     # Second, download the custom resources necessary to configure Calico
     curl https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/custom-resources.yaml -O
 
-    # Third, Create the manifest in order toinstall Calico
+    # Third, Create the manifest in order to install Calico
     kubectl create -f custom-resources.yaml
 
     # Install calicoctl binary - https://docs.tigera.io/calico/3.25/operations/calicoctl/install
@@ -333,7 +333,7 @@ function InstallCalico
     popd
 
     # This should succeed, with the calico-* items showing STATUS = Pending
-    kubectl get pods -n-kube-system
+    kubectl get pods -n kube-system
 
     echo "===================================================================="
     echo "Function: InstallCalico finished"
@@ -517,19 +517,18 @@ ConfigureFirewall
 InstallCRIO             # Install container runtime, needed by kubeadm
 InstallKubernetes
 
-if [ $NODE_TYPE = "MASTER" ]
+if [ $NODE_TYPE = "CONTROL" ]
 then
     echo "===================================================================="
     echo "Performing CONTROL node configuration"
     echo "===================================================================="
 
-    CreateCluster
+    InitializeControlPlane
+    InstallCalico
 
     #InstallDashboard
 fi
-#InitializeControlPlane
 #InstallCalico      # Uses kubectl
 
-#InstallDashboard
 #ShowServerSpecifications
 

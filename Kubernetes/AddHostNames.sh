@@ -5,9 +5,9 @@
 
 ##########################################################################
 # Add static ip addresses to /etc/hosts to allow hostnames instead of only IPs
-function AddLocalHostNames
+function AddHostNames
 {
-echo "Function: AddLocalHostNames"
+echo "Function: AddHostNames"
 
 if grep -q k-master /etc/hosts; then
     echo "k-master entry already exists in /etc/hosts (skipping)"
@@ -43,5 +43,5 @@ fi
 ##########################################################################
 # ====================================================================================
 
-AddHostnames
+AddHostNames
 
