@@ -187,6 +187,10 @@ function ConfigureFirewall
     echo "# All steps should report 'success'                                                           "
     echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
 
+    if [ $NODE_TYPE = "CONTROL" ]
+    then
+        echo "Applying CONTROL Node Firewall Settings"
+
     # From 'Control Plane' list : https://kubernetes.io/docs/reference/ports-and-protocols/
     # TCP Inbound	2379-2380	etcd Server Cleint API	kube-apiserver, etcd
     # TCP Inbound	10250		Kubelet API		Self, Control Plane
@@ -210,14 +214,29 @@ function ConfigureFirewall
     firewall-cmd --add-port=4789/udp --permanent                           # ?
     firewall-cmd --add-port={8285,8472}/udp --permanent                    # ?
 
+    fi
+
+    if [ $NODE_TYPE = "WORKER" ]
+    then
+        echo "Applying WORKER Node Firewall Settings"
+
+        # From "worker Node' list : https://kubernetes.io/docs/reference/ports-and-protocols
+        # TCP Inbound   10250           Kubelet API             Self, Control Plane
+        # TCP Inbound   30000-32767     NodePort Services       All
+
+        firewall-cmd --add-port={10250,30000-32767,5473,5473}/tcp --permanent
+        firewall-cmd --add-port={4789,8285,8472}/udp --permanent
+
+        # The following "may" be needed for each worker node that is intended to be connected to this master
+        # firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=ipv4 source address=10.17.20.116/32 accept'
+        # firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=ipv4 source address=10.17.20.117/32 accept'
+        # ======================================================================
+    fi
+
+    echo "Applying common firewall settings"
     # Ports for Calico CNI - needed for all nodes
     firewall-cmd --add-port=179/tcp --permanent                             # ?
     firewall-cmd --add-port=4789/tcp --permanent                            # ?
-
-    # The following "may" be needed for each worker node that is intended to be connected to this master
-    # firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=ipv4 source address=10.17.20.116/32 accept'
-    # firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=ipv4 source address=10.17.20.117/32 accept'
-    # ======================================================================
 
     firewall-cmd --add-masquerade --permanent                               # Associated with CRI-O ?
 
@@ -450,19 +469,64 @@ function Spare_Function
 # =============================================================================
 # =============================================================================
 
-echo "Applying MASTER Node settings to installation"
+# Requires one parameter
+# $1 = Option String
+#
+# Supported options defined in if statement below
+#
 
-PerformUpdate     # Some references recommend reboot after this step
+if [ -z "$1" ]
+then
+    echo "ERROR: Missing parameter - must specify CONTROL or WORKER node"
+    echo ""
+    echo "Supported Options:"
+    echo "    CONTROL    Performs installation using settings for Master node"
+    echo "    WORKER    Performs installation using settings for Worker node"
+    echo ""
+    echo "Usage: $0 CONTROL || WORKER"
+    exit
+fi
 
-SetPermissiveMode # Disables SELinux
-DisableSwap       #
+# Echo the valid command line entry
+echo $0 $1
 
+if [ "$1" = "CONTROL" ]
+then
+    echo "Applying CONTROL Node settings to installation"
+    NODE_TYPE="CONTROL"
+fi
+
+if [ "$1" = "WORKER" ]
+then
+    echo "Applying WORKER Node settings to installation"
+    NODE_TYPE=WORKER
+fi
+
+echo "Applying NODE_TYPE:  ${NODE_TYPE}"
+
+
+echo "===================================================================="
+echo "Performing tasks required by all nodes"
+echo "===================================================================="
+
+PerformUpdate           # Some references recommend reboot after this step
+SetPermissiveMode       # Disables SELinux
+DisableSwap             # Disables Swap
 ConfigureSysctl
 ConfigureFirewall
-
-InstallCRIO     # << Needed by kubeadm
+InstallCRIO             # Install container runtime, needed by kubeadm
 InstallKubernetes
 
+if [ $NODE_TYPE = "MASTER" ]
+then
+    echo "===================================================================="
+    echo "Performing CONTROL node configuration"
+    echo "===================================================================="
+
+    CreateCluster
+
+    #InstallDashboard
+fi
 #InitializeControlPlane
 #InstallCalico      # Uses kubectl
 

@@ -133,10 +133,8 @@
             Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.c++;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.scala;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl;*.d;*.m;*.mm;*.go;*.groovy;*.gsh"
             GUID="{82E9C8AE-4219-4236-8219-F098A85CC255}">
             <F N="DevTools.sh"/>
-            <F N="Kubernetes.sh"/>
             <F N="Lamp.sh"/>
             <F N="MariaDB.sh"/>
-            <F N="OpenShift.sh"/>
             <F N="Redmine.sh"/>
             <F N="SqueezeBox.sh"/>
             <F N="tc-agent.sh"/>
