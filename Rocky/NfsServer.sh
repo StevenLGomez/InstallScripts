@@ -48,7 +48,7 @@ function SetDomain
     echo "Function: SetDomain starting"
 
     # Set domain for bioMerieux network
-    sudo sed -i '/^#Domain/s/^#//;/Domain = /s/=.*/= corp.internal/' /etc/idmapd.conf
+    sudo sed -i '/^#Domain/s/^#//;/Domain = /s/=.*/= gomezengineering.lan/' /etc/idmapd.conf
 
     echo "Function: SetDomain complete"
 }
@@ -97,7 +97,11 @@ function StartService
     echo "Function: StartService starting"
     systemctl enable --now nfs-server rpcbind
 
-    echo "Check status of service using: systemctl status nfs-server"
+    echo "Check status of service. NOTE using systemctl status nfs-server will show active (exited)"
+    cat /proc/fs/nfsd/threads
+    cat /proc/fs/nfsd/versions
+    ps aux | grep nfsd
+
     echo "Function: StartService complete"
 }
 # -----------------------------------------------------------------------------
@@ -109,7 +113,7 @@ function PrepareClient
     echo "Function: PrepareClient starting"
 
     # See if the shared directories are discoverable
-    showmount -e nfs.rocky-nfs
+    showmount -e rocky-nfs
 
     # Create the share mount point
     mkdir /mnt/share
@@ -154,10 +158,12 @@ InstallApplications
 SetDomain
 PrepareService
 ConfigureFirewall
-StartService
 
 # Client specific group  This group not tested
 # PrepareClient
+
+# For Server & Client
+StartService
 
 
 
