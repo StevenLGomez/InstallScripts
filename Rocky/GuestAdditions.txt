@@ -1,4 +1,5 @@
 
+# For Rocky 8
 dnf -y update
 
 dnf install -y epel-release
@@ -18,3 +19,21 @@ uname -r
 /run/media/root/VBox_Gas_6.1.30/VBoxLinuxAdditions.run
 
 reboot
+
+# For Rocky 9 - The following is incomplete because my first attempt with a Rocky 9 VM resulted in no network connectivity.  ?? :(
+
+sudo dnf install epel-release -y
+sudo dnf install dkms kernel-devel kernel-headers gcc make bzip2 perl elfutils-libelf-devel
+
+$ rpm -q kernel-devel	
+kernel-devel-5.14.0-70.17.1.el9_0.x86_64
+
+$ uname -r
+5.14.0-70.13.1.el9_0.x86_64
+
+# if the kernel versions do not match, update using
+sudo dnf update -y
+
+sudo reboot now
+
+
