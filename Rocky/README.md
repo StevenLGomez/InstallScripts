@@ -23,8 +23,9 @@ Used the run button, which gave an error message, but could still extend the GUI
 * Steps for installing Podman
 ```
 dnf -y udpate
-dnf -y module install container-tools
-dnf -y install git podman-docker
+# dnf -y module install container-tools
+# dnf -y install git podman-docker
+dnf -y install git container-* buildah podman skopeo
 
 dnf -y install slirp4netns podman
 echo "user.max_user_namespaces=28644" > /etc/sysctl.d/userns.conf
@@ -33,7 +34,7 @@ sysctl -p /etc/sysctl.d/userns.conf
 
 # Allow admin user to manipulate files in /opt directory
 cd /opt
-chown –R admin:admin ./
+chown â€“R admin:admin ./
 
 ```
 
