@@ -20,8 +20,9 @@ uname -r
 
 reboot
 
-# For Rocky 9 - The following is incomplete because my first attempt with a Rocky 9 VM resulted in no network connectivity.  ?? :(
+# For Rocky 9.2 - On VirtualBox 7.0.10 
 
+# EPEL required for DKMS
 sudo dnf install epel-release -y
 sudo dnf install dkms kernel-devel kernel-headers gcc make bzip2 perl elfutils-libelf-devel
 
@@ -35,5 +36,13 @@ $ uname -r
 sudo dnf update -y
 
 sudo reboot now
+
+# Installing Guest Additions
+# Open terminal
+# Click on Devices -> Insert Guest Additions CD
+# Ignore the popup dialog, return to terminal 
+cd /run/media/developer/VBox_GAs_7.0.10
+sudo ./VBoxLinuxAdditions.run
+reboot
 
 
