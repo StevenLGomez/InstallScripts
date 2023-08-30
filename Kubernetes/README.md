@@ -1,37 +1,45 @@
 
 ## Kubernetes install notes
+Kubernetes installation support using application stack recommended by Red Hat.  
+
+The Red Hat stack has been chosen primarily because it uses CRI-O as the container runtime and therefore bypasses most of the historical security issues.   
 
 ### Pre-install - VM Configuration
 
 ```
 # ======== VM Configuration ========
-#
-# k-master
-# k-node01
-# k-node02
-#
-# CPU   4
-# RAM   8 GB
-# HD    300 GB thin
+hostname        IPa                  IPb
+k-master    10.17.20.122          10.1.1.115
+k-node01    10.17.20.122          10.1.1.116
+k-node02    10.17.20.122          10.1.1.117
+
+CPU   4
+RAM   8 GB
+HD    300 GB - eager thick
+
+Perform minimal install on nodes.
+Users: root, admin (with sudo added using visudo)
 # ==================================
 
-All nodes must have sudo permission applied to a non-root user account (using visudo)
+Prior to running the installation script on the VMs noted above, 
+make sure /etc/hosts has static IP entries on all VMs.
 ```
 
 ### Post install message from k-master
 
-
 Your Kubernetes control-plane has initialized successfully!
 
-To start using your cluster, you need to run the following as a regular user:
+To start using your cluster, on the master node you need to run the following as a regular user:   
+```
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
 
-  mkdir -p $HOME/.kube
-  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-  sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-Alternatively, if you are the root user, you can run:
-
-  export KUBECONFIG=/etc/kubernetes/admin.conf
+Alternatively, if you are the root user, you can run:   
+```
+export KUBECONFIG=/etc/kubernetes/admin.conf
+```
 
 You should now deploy a pod network to the cluster.
 Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
@@ -48,19 +56,26 @@ This information is from [this link](https://computingforgeeks.com/join-new-kube
 
 __On master__, get token using \(as non root user\) __kubeadm token list__
 If the token has expired, generate a new one using __sudo kubeadm token create__
-Display the current token using __kubeadm token list__
-Read the Discovery Token certificate hash using
-__openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'__
-Read the API Server \(Master's\) advertise address using __kubectl cluster-info__
+Display the current token using:
+```
+kubeadm token list
+```   
+Read the Discovery Token certificate hash using:
+```
+openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+```   
+Read the API Server \(Master\'s\) advertise address using:
+```
+kubectl cluster-info
+```
 
-__On the new node__ use __kubeadm join {api-server-endpoint] [flags]__ as follows:
+__On the new node__ use __kubeadm join [api-server-endpoint] [flags]__ as follows:
 ```
 kubeadm join \
   <control-plane-host>:<control-plane-port> \
   --token <token> \
   --discovery-token-ca-cert-hash sha256:<hash>
-```
-
+```   
 Will be similar to:
 ```
 kubeadm join 10.17.20.115:6443 \
@@ -76,20 +91,22 @@ Back on __master__, if no errors were displayed on the initializing node, you ca
 
 Since the YAML syntax can be pretty persnickity, you might want to install yamllint using __python3 -m pip install --user yamllint__
 
-See documentation [here](https://www.redhat.com/sysadmin/check-yaml-yamllint)
-There is also an online version [here](https://www.yamllint.com)
-
+See documentation [here](https://www.redhat.com/sysadmin/check-yaml-yamllint).   
+There is also an online version [here](https://www.yamllint.com).   
 
 ### Removing worker nodes from cluster - USE WITH EXTREME CAUTION
 
 First drain any active pods from the worker node (I think this is all done on the control plane)
+```
+kubectl drain <node-name> --delete-emptydir-data --ignore-daemonsets
+```
+Prevent a node from starrting new pods \(mark as unschedulable\).
+```
+kubectl cordon <node-name>
+```
 
-__kubectl drain <node-name> --delete-emptydir-data --ignore-daemonsets__
-
-Prevent a node from starrting new pods - mark as unschedulable
-
-__kubectl cordon <node-name>__
-
-Then on the working node being removed, revert the previous join changes using __sudo kubeadm reset__.
-
+Then on the working node being removed, revert the previous join changes using:
+```
+sudo kubeadm reset
+```
 

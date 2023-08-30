@@ -10,9 +10,9 @@
             Filters="*.py"
             GUID="{A58558CD-F342-467B-A3A4-E461E494EEE3}">
             <F N="AddHostNames.sh"/>
-            <F N="k8s-master.sh"/>
-            <F N="k8s-worker.sh"/>
-            <F N="k8s.sh"/>
+            <F N="k8s-install.sh"/>
+            <F N="README.md"/>
+            <F N="set-config.sh"/>
         </Folder>
         <Folder
             Name="Other Files"
