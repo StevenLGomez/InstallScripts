@@ -26,7 +26,7 @@ fi
 if grep -q k-node02 /etc/hosts; then
     echo "k-node02 entry already exists in /etc/hosts (skipping)"
 else
-    echo "Adding k-node02 to /etc/hosts (Kubernetes Worker Node 01)"
+    echo "Adding k-node02 to /etc/hosts (Kubernetes Worker Node 02)"
     echo '10.1.1.117     k-node02  k-node02.gomezengineering.lan    # Kubernetes worker node 02' >> /etc/hosts
 fi
 
