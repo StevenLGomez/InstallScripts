@@ -528,7 +528,6 @@ then
 
     #InstallDashboard
 fi
-#InstallCalico      # Uses kubectl
 
 #ShowServerSpecifications
 
