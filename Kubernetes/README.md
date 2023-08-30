@@ -29,21 +29,22 @@ make sure /etc/hosts has static IP entries on all VMs.
 
 Your Kubernetes control-plane has initialized successfully!
 
-To start using your cluster, on the master node you need to run the following as a regular user:   
+__The k8s-install.sh script performs these steps__, however if you installed with an alternate method, to start using your cluster, on the master node you need to run the following as a regular user:   
 ```
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
-```
 
-Alternatively, if you are the root user, you can run:   
-```
+# Alternatively, if you are the root user, you can run:   
 export KUBECONFIG=/etc/kubernetes/admin.conf
 ```
 
+__As above k8s-installs Calico__, if an alternative is desired:
+```
 You should now deploy a pod network to the cluster.
 Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
   https://kubernetes.io/docs/concepts/cluster-administration/addons/
+```
 
 Then you can join any number of worker nodes by running the following on each as root:
 
@@ -81,6 +82,11 @@ Will be similar to:
 kubeadm join 10.17.20.115:6443 \
 	--token jyi49d.m760h13um8trogbs \
 	--discovery-token-ca-cert-hash sha256:51fb0f2f89b20791cb19341ea33c255b70dc5a5fb8ed235b24eb8028fbc0efce
+```
+
+__Shortcut__
+```
+kubeadm token create --print-join-command
 ```
 
 The command output from above should show __preflight__ and __kubelet_start__ information.
