@@ -62,6 +62,8 @@ kubeadm join 10.17.20.115:6443 --token l7fgrv.k9vfhh46cwdp2be9 \
 
 This information is from [this link](https://computingforgeeks.com/join-new-kubernetes-worker-node-to-existing-cluster/)
 
+__Jump ahead to Shortcut__
+
 __On master__, get token using \(as non root user\) __kubeadm token list__
 If the token has expired, generate a new one using __sudo kubeadm token create__
 Display the current token using:
@@ -93,12 +95,19 @@ kubeadm join 10.17.20.115:6443 \
 
 __Shortcut__
 ```
+# Show the full command needed on the worker nodes, by entering on master:
 kubeadm token create --print-join-command
 ```
-
-The command output from above should show __preflight__ and __kubelet_start__ information.
-
 Back on __master__, if no errors were displayed on the initializing node, you can watch its initialization using __kubectl get nodes__.
+
+__Assigning ROLES Labels__
+```
+# General format:
+# kubectl label nodes <my node name> kubernetes.io/role=<desired role label>
+# Specific example:
+kubectl label nodes k-node01 kubernetes.io/role=worker-01
+```
+
 
 ### Helpful addons
 
