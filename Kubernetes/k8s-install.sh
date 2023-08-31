@@ -224,7 +224,7 @@ function ConfigureFirewall
         # TCP Inbound   10250           Kubelet API             Self, Control Plane
         # TCP Inbound   30000-32767     NodePort Services       All
 
-        firewall-cmd --add-port={10250,30000-32767,5473,5473}/tcp --permanent
+        firewall-cmd --add-port={10250,30000-32767,5473}/tcp --permanent
         firewall-cmd --add-port={4789,8285,8472}/udp --permanent
 
         # The following "may" be needed for each worker node that is intended to be connected to this master
