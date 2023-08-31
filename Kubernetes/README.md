@@ -10,15 +10,22 @@ The Red Hat stack has been chosen primarily because it uses CRI-O as the contain
 # ======== VM Configuration ========
 hostname        IPa                  IPb
 k-master    10.17.20.122          10.1.1.115
-k-node01    10.17.20.122          10.1.1.116
-k-node02    10.17.20.122          10.1.1.117
+k-node01    10.17.20.123          10.1.1.116
+k-node02    10.17.20.124          10.1.1.117
 
 CPU   4
 RAM   8 GB
 HD    300 GB - eager thick
 
 Perform minimal install on nodes.
-Users: root, admin (with sudo added using visudo)
+
+Users: root, admin (with sudo added using visudo or steps below)
+If admin user was not created during installation, add now using:
+adduser admin
+passwd admin
+usermod -aG wheel admin
+su - admin (Confirm sudo works)
+
 # ==================================
 
 Prior to running the installation script on the VMs noted above, 
