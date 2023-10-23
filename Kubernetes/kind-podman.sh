@@ -17,6 +17,9 @@
 #
 #
 
+# URL to download Kubernetes In Docker directly from github
+KIND_DL_URL=https://github.com/kubernetes-sigs/kind/releases/download/v0.20.0/kind-linux-amd64
+
 # #############################################################################
 #
 function PerformUpdate
@@ -44,9 +47,10 @@ function InstallContainerRunTime
 #
 function InstallKind
 {
-    # Download rpm from https://github.com/kubernetes-sigs/kind/releases
+    # Download rpm from https://github.com/kubernetes-sigs/kind/releases into ~/Downloads
+    wget $KIND_DL_URL --directory-prefix=$HOME/Downloads
 
-    pushd Downloads
+    pushd $HOME/Downloads
 
     sudo chmod +x ./kind-linux-amd64
     sudo mv ./kind-linux-amd64 /usr/local/bin/kind
