@@ -39,19 +39,10 @@
 # alias docker=podman
 # export KIND_EXPERIMENTAL_PROVIDER=podman
 #
-# ...     source .bashrc
-#
-# Creating multi node cluster (from Acing the Certified Kubernetes Administrator, A.2)
-# cat << EOF | tee config.yaml
-# kind: Cluster
-# apiVersion: kind.x-k8s.io/v1alpha4
-# nodes:
-# - role: control-plane
-# - role: worker
-# - role: worker
-# EOF
+# then     source .bashrc
 #
 # kind create cluster --config config.yaml
+# kind delete cluster
 #
 
 
@@ -147,6 +138,44 @@ function InstallKubectl
 }
 # -----------------------------------------------------------------------------
 
+# #############################################################################
+#
+function CreateConfigurationYaml
+{
+    # Create basic 3 node configuration per A.2, page 232
+    # Usage: kind create cluster --config config.yaml
+    #        kubectl get nodes
+cat << EOF | tee config.yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+- role: worker
+- role: worker
+EOF
+
+    # Create Advanced configuration per A.3, page 233 - 234
+    # Usage: kind create cluster --config config2.yaml
+    #        kubectl get nodes
+cat << EOF | tee config2.yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+  labels:
+  ingress-ready: true
+EOF
+
+
+
+
+
+
+}
+# -----------------------------------------------------------------------------
 
 # =============================================================================
 # =============================================================================
@@ -193,4 +222,6 @@ PerformUpdate
 InstallKubectl
 InstallContainerRunTime
 InstallKind
+
+CreateConfigurationYaml
 
