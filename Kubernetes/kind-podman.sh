@@ -7,18 +7,56 @@
 # Hard Disk	350 Gb - Thick lazy
 # IP		10.17.20.129
 #
-# Installed Fedora - Rocky as 'Server with GUI' to have web browser
-# Users: root & developer, and added developer with visudo
+# Installed Fedora Workstation 
 #
 # ======================================================================
 # Install notes from 'Acing The Certified Kubernetes Administrator' book
 #
 # KIND from:		https://github.com/kubernetes-sigs/kind/releases
 #
-# To create a cluster:
-# kind create cluster
+# Post install instructions:
+# 
+# If running Docker, start the container engine using:
+# sudo systemctl start docker
+# systemctl status docker  << should show it is running
+# NOTE - Although systemctl shows docker.service is running, no workie
+#
+# Otherwise ...
+# kind create cluster      << After several minutes ...
+# kind get clusters        << Will show a cluster named 'kind'
+#
+# Exec into the Kind cluster
+# podman exec -it kind-control-plane bash
+#
+# Read available contexts
+# kubectl config get-contexts   << Should show info about the Kind cluster
+# 
+# After poking around a bit, exit and delete 
+# kind delete cluster
+
+# Environment Settings
+# For Podman, added the following to .bashrc
+# alias docker=podman
+# export KIND_EXPERIMENTAL_PROVIDER=podman
+#
+# ...     source .bashrc
+#
+# Creating multi node cluster (from Acing the Certified Kubernetes Administrator, A.2)
+# cat << EOF | tee config.yaml
+# kind: Cluster
+# apiVersion: kind.x-k8s.io/v1alpha4
+# nodes:
+# - role: control-plane
+# - role: worker
+# - role: worker
+# EOF
+#
+# kind create cluster --config config.yaml
+#
 
 
+
+# #############################################################################
 # URL to download Kubernetes In Docker directly from github
 KIND_DL_URL=https://github.com/kubernetes-sigs/kind/releases/download/v0.20.0/kind-linux-amd64
 
@@ -58,7 +96,7 @@ function InstallContainerRunTime
         sudo dnf -y config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
 
         # Install the latest version 
-        sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        sudo dnf -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     fi
 
     echo "Function: InstallContainerRunTime complete"
