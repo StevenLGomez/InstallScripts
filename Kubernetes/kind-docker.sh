@@ -35,19 +35,14 @@ function PerformUpdate
 
 # #############################################################################
 #
-function InstallDocker
+function InstallContainerRunTime
 {
-
-    # Download rpm from https://docs/docker.com/desktop/install/fedora
-
+    # Setup repositories
     sudo dnf -y install dnf-plugins-core
     sudo dnf -y config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
 
-    pushd Downloads
-
-    sudo dnf -y install ./docker-desktop-4.23.0-x86_64.rpm
-
-    popd
+    # Install the latest version 
+    sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 }
 # -----------------------------------------------------------------------------
@@ -56,14 +51,39 @@ function InstallDocker
 #
 function InstallKind
 {
-    # Download rpm from https://github.com/kubernetes-sigs/kind/releases
+    # Download rpm from https://github.com/kubernetes-sigs/kind/releases into ~/Downloads
+    wget $KIND_DL_URL --directory-prefix=$HOME/Downloads
 
-    pushd Downloads
+    pushd $HOME/Downloads
 
     sudo chmod +x ./kind-linux-amd64
     sudo mv ./kind-linux-amd64 /usr/local/bin/kind
 
     popd
+}
+# -----------------------------------------------------------------------------
+
+# #############################################################################
+#
+function InstallKubectl
+{
+    # Switch to the $HOME/Downloads directory
+    pushd $HOME/Downloads
+
+    # Download the latest version
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+    # Download the kubectl checksum file
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+
+    # Validate kubectl binary against the checksum file, sleep to allow output viewing
+    echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+    sleep 10
+
+    # Install to $HOME/.local/bin (which is already in Fedora's path)
+    chmod +x kubectl
+    mkdir -p ~/.local/bin
+    mv ./kubectl ~/.local/bin/kubectl
 
 }
 # -----------------------------------------------------------------------------
@@ -77,11 +97,6 @@ function InstallKind
 # =============================================================================
 
 PerformUpdate	
-InstallDocker
+InstallContainerRunTime
 InstallKind
-
-# After the above, must:
-# 1.) Start Docker Desktop - may require logging in
-# 2.) kind create cluster
-
 

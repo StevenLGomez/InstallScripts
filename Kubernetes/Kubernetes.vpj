@@ -11,6 +11,7 @@
             GUID="{A58558CD-F342-467B-A3A4-E461E494EEE3}">
             <F N="AddHostNames.sh"/>
             <F N="k8s-install.sh"/>
+            <F N="kind-docker.sh"/>
             <F N="kind-podman.sh"/>
             <F N="README.md"/>
             <F N="set-config.sh"/>

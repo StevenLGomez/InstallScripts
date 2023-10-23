@@ -15,7 +15,9 @@
 #
 # KIND from:		https://github.com/kubernetes-sigs/kind/releases
 #
-#
+# To create a cluster:
+# kind create cluster
+
 
 # URL to download Kubernetes In Docker directly from github
 KIND_DL_URL=https://github.com/kubernetes-sigs/kind/releases/download/v0.20.0/kind-linux-amd64
@@ -60,6 +62,27 @@ function InstallKind
 }
 # -----------------------------------------------------------------------------
 
+function InstallKubectl
+{
+    # Switch to the $HOME/Downloads directory
+    pushd $HOME/Downloads
+
+    # Download the latest version
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+    # Download the kubectl checksum file
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+
+    # Validate kubectl binary against the checksum file, sleep to allow output viewing
+    echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+    sleep 10
+
+    # Install to $HOME/.local/bin (which is already in Fedora's path)
+    chmod +x kubectl
+    mkdir -p ~/.local/bin
+    mv ./kubectl ~/.local/bin/kubectl
+
+}
 
 
 # =============================================================================
@@ -71,8 +94,6 @@ function InstallKind
 PerformUpdate	
 InstallContainerRunTime
 InstallKind
-
-# After the above, must:
-# 2.) kind create cluster
+InstallKubectl
 
 
