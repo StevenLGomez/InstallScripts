@@ -41,7 +41,25 @@ function PerformUpdate
 #
 function InstallContainerRunTime
 {
-    sudo dnf -y install podman
+    echo "Function: InstallContainerRunTime starting"
+
+    if [ $CONTAINER_RUNTIME = "PODMAN" ]
+    then
+        echo "Installing Podman container runtime"
+        sudo dnf -y install podman
+    fi
+
+    if [ $CONTAINER_RUNTIME = "DOCKER" ]
+    then
+        echo "Installing Docker container runtime"
+
+        # Setup repositories
+        sudo dnf -y install dnf-plugins-core
+        sudo dnf -y config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+
+        # Install the latest version 
+        sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    fi
 
     echo "Function: InstallContainerRunTime complete"
 }
@@ -97,6 +115,41 @@ function InstallKubectl
 # Script execution starts below
 # =============================================================================
 # =============================================================================
+
+# Requires one parameter
+# $1 = Option String
+#
+# Supported options defined in if statement below
+#
+
+if [ -z "$1" ]
+then
+    echo "ERROR: Missing parameter - must specify PODMAN or DOCKER container runtime"
+    echo ""
+    echo "Supported Options:"
+    echo "    PODMAN    Installs Podman container runtime"
+    echo "    DOCKER    Installs Docker container runtime"
+    echo ""
+    echo "Usage: $0 PODMAN || DOCKER"
+    exit
+fi
+
+# Echo the valid command line entry
+echo $0 $1
+
+if [ "$1" = "PODMAN" ]
+then
+    echo "Will install PODMAN container runtime"
+    CONTAINER_RUNTIME="PODMAN"
+fi
+
+if [ "$1" = "DOCKER" ]
+then
+    echo "Will install DOCKER container runtime"
+    CONTAINER_RUNTIME=DOCKER
+fi
+
+echo "Applying CONTAINER_RUNTIME:  ${CONTAINER_RUNTIME}"
 
 PerformUpdate	
 InstallKubectl
