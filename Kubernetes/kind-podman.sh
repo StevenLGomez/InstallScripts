@@ -163,10 +163,10 @@ apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
 - role: control-plane
   extraPortMappings:
-  - containerPort: 80
-    hostPort: 80
+  - containerPort: 8080
+    hostPort: 8080
   labels:
-  ingress-ready: true
+    ingress-ready: true
 EOF
 
 

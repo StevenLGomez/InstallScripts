@@ -132,3 +132,12 @@ Then on the working node being removed, revert the previous join changes using:
 sudo kubeadm reset
 ```
 
+### KIND Install notes 
+
+Rootless mode errors:   
+Error: rootlessport cannot expose privileged port 80, you can add 'net.ipv4.ip_unprivileged_port_start=80' to /etc/sysctl.conf (currently 1024), or choose a larger port (>= 1024).   
+
+Set script to start 8080...
+
+
+
