@@ -75,7 +75,7 @@ function InstallKubectl
 
     # Validate kubectl binary against the checksum file, sleep to allow output viewing
     echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
-    sleep 10
+    sleep 5
 
     # Install to $HOME/.local/bin (which is already in Fedora's path)
     chmod +x kubectl
@@ -92,8 +92,8 @@ function InstallKubectl
 # =============================================================================
 
 PerformUpdate	
+InstallKubectl
 InstallContainerRunTime
 InstallKind
-InstallKubectl
 
 
