@@ -75,7 +75,7 @@ function InstallContainerRunTime
     if [ $CONTAINER_RUNTIME = "PODMAN" ]
     then
         echo "Installing Podman container runtime"
-        sudo dnf -y install podman
+        sudo dnf -y install podman podman-docker
     fi
 
     if [ $CONTAINER_RUNTIME = "DOCKER" ]
