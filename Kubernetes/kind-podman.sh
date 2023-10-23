@@ -42,6 +42,8 @@ function PerformUpdate
 function InstallContainerRunTime
 {
     sudo dnf -y install podman
+
+    echo "Function: InstallContainerRunTime complete"
 }
 # -----------------------------------------------------------------------------
 
@@ -49,11 +51,15 @@ function InstallContainerRunTime
 #
 function InstallKind
 {
+    echo "Function: InstallKind starting"
+
     # Download rpm from https://github.com/kubernetes-sigs/kind/releases
     wget $KIND_DL_URL 
 
     sudo chmod +x ./kind-linux-amd64
     sudo mv ./kind-linux-amd64 /usr/local/bin/kind
+
+    echo "Function: InstallKind complete"
 }
 # -----------------------------------------------------------------------------
 
@@ -61,6 +67,8 @@ function InstallKind
 #
 function InstallKubectl
 {
+    echo "Function: InstallKubectl starting"
+
     # Download the latest version
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 
@@ -74,11 +82,12 @@ function InstallKubectl
     # Install to $HOME/.local/bin (which is already in Fedora's path)
     chmod +x kubectl
     mkdir -p /home/$USER/.local/bin
-    mv ./kubectl /home/$USER/.local/bin/kubectl
+    sudo mv ./kubectl /usr/local/bin/kubectl
 
     # Remove the checksum file
     rm kubectl.sha256
 
+    echo "Function: InstallKubectl complete"
 }
 # -----------------------------------------------------------------------------
 
