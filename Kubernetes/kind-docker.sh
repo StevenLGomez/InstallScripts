@@ -13,10 +13,14 @@
 # ======================================================================
 # Install notes from 'Acing The Certified Kubernetes Administrator' book
 #
-# Docker desktop from:	https://docker.com/products/docker-desktop
 # KIND from:		https://github.com/kubernetes-sigs/kind/releases
 #
-#
+# To create a cluster:
+# kind create cluster
+
+
+# URL to download Kubernetes In Docker directly from github
+KIND_DL_URL=https://github.com/kubernetes-sigs/kind/releases/download/v0.20.0/kind-linux-amd64
 
 # #############################################################################
 #
@@ -51,15 +55,11 @@ function InstallContainerRunTime
 #
 function InstallKind
 {
-    # Download rpm from https://github.com/kubernetes-sigs/kind/releases into ~/Downloads
-    wget $KIND_DL_URL --directory-prefix=$HOME/Downloads
-
-    pushd $HOME/Downloads
+    # Download rpm from https://github.com/kubernetes-sigs/kind/releases
+    wget $KIND_DL_URL 
 
     sudo chmod +x ./kind-linux-amd64
     sudo mv ./kind-linux-amd64 /usr/local/bin/kind
-
-    popd
 }
 # -----------------------------------------------------------------------------
 
@@ -67,9 +67,6 @@ function InstallKind
 #
 function InstallKubectl
 {
-    # Switch to the $HOME/Downloads directory
-    pushd $HOME/Downloads
-
     # Download the latest version
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 
@@ -82,8 +79,11 @@ function InstallKubectl
 
     # Install to $HOME/.local/bin (which is already in Fedora's path)
     chmod +x kubectl
-    mkdir -p ~/.local/bin
-    mv ./kubectl ~/.local/bin/kubectl
+    mkdir -p /home/$USER/.local/bin
+    mv ./kubectl /home/$USER/.local/bin/kubectl
+
+    # Remove the checksum file
+    rm kubectl.sha256
 
 }
 # -----------------------------------------------------------------------------
