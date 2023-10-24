@@ -139,7 +139,7 @@ Error: rootlessport cannot expose privileged port 80, you can add 'net.ipv4.ip_u
 
 Set script config2.yaml to use containerPort: 80 & hostPort: 8080
 
-Post Install instructions...   
+**Post Install instructions...**   
 ```
 # If running Docker, start the container engine using:
 # sudo systemctl start docker
@@ -158,7 +158,7 @@ source ~/.bashrc
 
 ```
 
-Installation tests...   
+**Installation tests...**   
 ```
 kind create cluster      << After several minutes ...
 kind get clusters        << Will show a cluster named 'kind'
@@ -173,9 +173,73 @@ kubectl config get-contexts   << Should show info about the Kind cluster
 kind delete cluster
 
 # Testing more advanced clusters
-kind create cluster --config config.yaml
+kind create cluster --config config.yaml --name cfg1    << Wait for it, wait for it
+kubectl get nodes
+
+kind create cluster --config config2.yaml --name cka 
+kubectl get nodes --show-labels && docker port cka-control-plane
+
 kind delete cluster
 ```
 
+**Setting context...**   
+```
+# Kind can read context of ~/.kube/config
+kind get kubeconfig --name "myname"
 
+# -- OR -- 
+kubectl config view --minify
+
+# See config of running cluster
+kind create cluster --config config2.yaml 
+kubectl get nodes
+podman exec -it kind-control-plane bash
+echo $KUBECONFIG
+
+# KUBECONFIG can be modified to use multiple configurations
+export KUBECONFIG=~/Downloads/config2:~/.kube/config
+
+kubectl config get-contexts   << to list the defined configurations (active has *)
+kubectl config use-context kind-kind
+kubectl config get-contexts   << should show switch to different context
+```
+
+**Installing a CNI in a kind cluster...**   
+```
+# Create configuration to create cluster without CNI (no-cni.yaml)
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+  disableDefaultCNI: true
+nodes:
+- role: control-plane
+- role: worker
+
+kind create cluster --image kindest/node:v1.25.0-beta.0 --config no-cni.yaml
+# You will notice that it does not install CNI
+
+# In separate shells, execute each node
+podman exec -it kind-control-plane bash
+podman exec -it kind-worker-plane bash
+
+# Repeat these commands in each of the execute shells
+apt update; apt install wget
+wget https://github.com/containernetworking/plugins/releases/download/v1.1.1/cni-plugins-linux-amd64-v1.1.1.tgz
+tar -xvf cni-plugins-linux-amd64-v1.1.1.tgz
+
+# Move the bridge file to the correct location
+mv bridge /opt/cni/bin/
+
+# Then, in the control plane shell
+kubectl get nodes    << Will show NotReady
+kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+
+
+kubectl get nodes    << After a minute will show Ready
+kubectl get pods -A  << Will show kube-flannel pods are Running
+
+# Installing Calico CNI
+create cluster --image kindest/node:v1.25.0-beta.0 --config no-cni.yaml --name cka
+
+```
 
