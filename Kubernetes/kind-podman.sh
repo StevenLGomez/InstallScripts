@@ -11,40 +11,8 @@
 #
 # ======================================================================
 # Install notes from 'Acing The Certified Kubernetes Administrator' book
+# Appendix A & B
 #
-# KIND from:		https://github.com/kubernetes-sigs/kind/releases
-#
-# Post install instructions:
-# 
-# If running Docker, start the container engine using:
-# sudo systemctl start docker
-# systemctl status docker  << should show it is running
-# NOTE - Although systemctl shows docker.service is running, no workie
-#
-# Otherwise ...
-# kind create cluster      << After several minutes ...
-# kind get clusters        << Will show a cluster named 'kind'
-#
-# Exec into the Kind cluster
-# podman exec -it kind-control-plane bash
-#
-# Read available contexts
-# kubectl config get-contexts   << Should show info about the Kind cluster
-# 
-# After poking around a bit, exit and delete 
-# kind delete cluster
-
-# Environment Settings
-# For Podman, added the following to .bashrc
-# alias docker=podman
-# export KIND_EXPERIMENTAL_PROVIDER=podman
-#
-# then     source .bashrc
-#
-# kind create cluster --config config.yaml
-# kind delete cluster
-#
-
 
 
 # #############################################################################
@@ -126,13 +94,14 @@ function InstallKubectl
     echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
     sleep 5
 
-    # Install to $HOME/.local/bin (which is already in Fedora's path)
     chmod +x kubectl
-    mkdir -p /home/$USER/.local/bin
     sudo mv ./kubectl /usr/local/bin/kubectl
 
     # Remove the checksum file
     rm kubectl.sha256
+
+    # Install bash-completion 
+    sudo dnf install -y bash-completion
 
     echo "Function: InstallKubectl complete"
 }
@@ -169,10 +138,9 @@ nodes:
     ingress-ready: true
 EOF
 
-
-
-
-
+    # Script is run as sudo, reassign yaml files to standard user
+    chown $USER:$USER config.yaml
+    chown $USER:$USER config2yaml
 
 }
 # -----------------------------------------------------------------------------

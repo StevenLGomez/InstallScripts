@@ -137,7 +137,44 @@ sudo kubeadm reset
 Rootless mode errors:   
 Error: rootlessport cannot expose privileged port 80, you can add 'net.ipv4.ip_unprivileged_port_start=80' to /etc/sysctl.conf (currently 1024), or choose a larger port (>= 1024).   
 
-Set script to start 8080...
+Set script config2.yaml to use containerPort: 80 & hostPort: 8080
+
+Post Install instructions...   
+```
+# If running Docker, start the container engine using:
+# sudo systemctl start docker
+# systemctl status docker  << should show it is running
+# NOTE - Although systemctl shows docker.service is running, no workie
+
+# Set environment variables and aliases (as standard user)
+echo 'alias docker=podman' >> ~/.bashrc 
+echo export KIND_EXPERIMENTAL_PROVIDER=podman >> ~/.bashrc
+
+echo 'source <(kubectl completion bash)' >> ~/.bashrc
+echo 'source /usr/share/bash-completion/bash_completion' >> ~/.bashrc
+echo 'alias k=kubectl' >> ~/.bashrc
+echo 'complete -o default -F __start_kubectl k' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Installation tests...   
+```
+kind create cluster      << After several minutes ...
+kind get clusters        << Will show a cluster named 'kind'
+
+# Exec into the Kind cluster
+podman exec -it kind-control-plane bash
+
+ Read available contexts
+kubectl config get-contexts   << Should show info about the Kind cluster
+ 
+# After poking around a bit, exit and delete 
+kind delete cluster
+
+# Testing more advanced clusters
+kind create cluster --config config.yaml
+kind delete cluster
+```
 
 
 
