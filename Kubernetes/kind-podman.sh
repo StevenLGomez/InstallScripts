@@ -138,10 +138,6 @@ nodes:
     ingress-ready: true
 EOF
 
-    # Script is run as sudo, reassign yaml files to standard user
-    chown $USER:$USER config.yaml
-    chown $USER:$USER config2yaml
-
 }
 # -----------------------------------------------------------------------------
 
