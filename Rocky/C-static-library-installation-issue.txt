@@ -1,0 +1,42 @@
+steven.gomez
+2:26 PM
+
+Using Rocky 9.2 "minimal install" (no GUI, command line only) attempting to compile third party 
+library that requires static linking.  Build fails with /bin/ld: cannot find -lc.  Have tried 
+various methods to install glibc-static, including: 
+dnf --enablerepo=crb install glibc-static, 
+dnf -y groupinstall "Development Tools", 
+dnf config-manager --set-enabled crb, 
+dnf repolist --all (which does not list crb), and perhaps other incantations.  
+In all incantations get message saying crb not found or available.   Understand that RH doesn't 
+include it for security reasons, but is there a way to get perhaps a glibc-static RPM that 
+I could install to resolve this issue?
+New Messages
+[matterbridge]
+BOT
+2:45 PM
+
+<Sokel> glibc-static is in crb. crb should be readily available for you to enable and use, 
+assuming this is a standard install of Rocky Linux 9.2. crb is listed in /etc/yum.repos.d/rocky.repo
+steven.gomez
+3:04 PM
+
+Thank you for the reply.  I came across an alternate (but very similar) path that seems 
+to have resolved the problem.  Previously "sudo dnf -y --enablerepo=crb install gllibc-static" 
+would fail with "crb not found" response (or similar to...), found another site that said to 
+use "sudo dnf -y --enablerepo=devel install glibc-static" (same as above, but devel instead of crb), 
+and glibc-static installed OK, and the build that was previously failing now succeeds.  
+As I mentioned originally, this is a "minimal install" system without a GUI; some sites mentioned 
+this library being related to KDE build tools (which probably aren't present on a minimal system), 
+which is perhaps why I couldn't access crb.  Also rocky.repo doesn't exist at the path noted, and 
+grep crb /etc/yum.repos.d/*.repo returned no results, so perhaps a minimal install isn't "standard".
+[matterbridge]
+BOT
+3:09 PM
+
+<Sokel> It sounds like this is a modified installation, because /etc/yum.repos.d/rocky.repo will 
+always be the same regardless of the installation performed.
+steven.gomez
+3:27 PM
+
+Thank you again.  Roger that concerning rocky.repo.  Will keep this in mind for future reference.
