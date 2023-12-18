@@ -56,9 +56,31 @@ sysctl -p /etc/sysctl.d/userns.conf
 loginctl enable-linger
 loginctl user-status | grep Linger  # << Should reply with Linger: yes
 
-
 ```
 
+```
+# Podman desktop setup
+
+# Search for logo icon & download to ~/Desktop
+# Download .tar.gz from [podman-desktop.io](https://podman-desktop.io/downloads)
+
+# Create ~/bin directory
+# unzip file downloaded above into ~/bin directory.
+
+# Create file .local/share/applications/PodmanDesktop.desktop with contents:
+#           NOTE - Path changes with version installed.
+
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Podman Desktop
+Comment=Container workflow automation
+Icon=/home/developer/Desktop/podman-logo.png
+Exec=/home/developer/bin/podman-desktop-1.6.3/podman-desktop
+Terminal=false
+Categories=Applications:Development
+
+```
 
 
 
