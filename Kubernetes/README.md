@@ -243,3 +243,22 @@ create cluster --image kindest/node:v1.25.0-beta.0 --config no-cni.yaml --name c
 
 ```
 
+**Post Install DNS Troubleshooting**   
+```
+# From Kubernetes Up & Running - Chapter 3 - Deploying a Kubernetes Cluster
+# Cluster Compenents - Page 34
+
+# Kubernetes Proxy
+kubectl get daemonSets --namespace=kube-system kube-proxy    <= Success
+
+# Kubernetes DNS
+kubectl get deployments --namespace=kube-system core-dns     <= Fails
+Error from server (NotFound): deployment.apps "core-dns" not found
+
+kubectl get services --namespace=kube-system core-dns        <= Fails
+Error from server (NotFound): deployment.apps "core-dns" not found
+
+
+
+```
+
