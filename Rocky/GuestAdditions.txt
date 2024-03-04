@@ -45,4 +45,10 @@ cd /run/media/developer/VBox_GAs_7.0.10
 sudo ./VBoxLinuxAdditions.run
 reboot
 
+# Screen flickering issues
+# Open terminal
+sudo vi /etc/gdm/custom.conf
+# Find WaylandEnable property, make sure that it is set to false and that the line is not commented out.
+# May also be necessary to add: DefaultSession=gnome=xorg.desktop in [daemon] section.
+
 
