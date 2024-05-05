@@ -199,21 +199,21 @@ function InstallPhp
 {
     echo "Function: InstallPhp starting"
 
-    dnf install php-{common,gmp,fpm,curl,intl,pdo,gd,xml,cli,zip,mysqli}
+    dnf install -y php-{common,gmp,fpm,curl,intl,pdo,gd,xml,cli,zip,mysqli}
 
-    # Add other PHP modules as needed (desired?) - yum search php
-    yum -y install php-mysqlnd php-pecl-zip php-bcmath
+    # Add other PHP modules as needed (desired?) - dnf search php
+    dnf -y install php-mysqlnd php-pecl-zip php-bcmath
 
     # This group supports phpMyAdmin
-    yum -y install php-json php-mbstring
+    dnf -y install php-json php-mbstring
 
     # This group supports WordPress, Joomla & Drupal
-    yum -y install php-ldap php-odbc php-pear php-xmlrpc php-soap curl-devel
+    dnf -y install php-ldap php-odbc php-pear php-soap curl-devel
 
     php --version
 
     # Create dummy php test page
-    echo "<?php phpinfo(); ?>" >> /var/www/html/info.php
+    echo "<?php phpinfo(); ?>" > /var/www/html/info.php
 
     echo "Function: InstallPhp complete"
 }
