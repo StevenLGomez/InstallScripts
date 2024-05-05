@@ -8,14 +8,13 @@
 # Configuration notes
 # Load SSL modules in /etc/httpd/conf/httpd.conf per examples below
 # See: https://computingforgeeks.com/install-apache-with-ssl-http2-on-rhel-centos/
-
+#
 # systemctl restart httpd.service
 
 ###  For Database - MariaDB
 # Configuration notes
-# See: https://computingforgeeks.com/how-to-install-mariadb-database-server-on-rhel-8/
 #
-# Run: mysql_secure_installation
+# Run: sudo mysql_secure_installation
 #
 #      * If root password was not previously set, press enter for option to create it
 #      * Set root password               Temporarily use C...S...00
@@ -38,7 +37,28 @@
 # flush privileges;
 # quit;
 
+### For PHP ##############################################################
 
+# Run: sudo vi /etc/php.ini
+
+#      Make the following modifications (note also check to ensure these items are not commented)
+#   max_execution_time = 300
+#   upload_max_filesize = 100M
+#   post_max_size = 128M
+#   date.timezone = America/Chicago
+
+# Run: sudo vi /etc/httpd/conf/httpd.conf
+
+#      Add the following AddHandler line after LoadModule section 
+#   # The following line enables PHP loading by Apache
+#   AddHandler php-script .php 
+
+# Restart Apache & PHP-FPM by running:
+
+#    sudo systemctl restart php-fpm
+#    sudo systemctl restart httpd
+
+# AFTER TEST RUNNING PHP, REMOVE info.php 
 
 ### For PhpMyAdmin #######################################################
 # See: https://computingforgeeks.com/install-and-configure-phpmyadmin-on-rhel-8/
@@ -121,6 +141,7 @@
 WORDPRESS=latest.tar.gz
 WORDPRESS_URL=https://wordpress.org/${WORDPRESS}
 
+PHP_MYADMIN_VER="5.2.0"
 
 ##########################################################################
 #
@@ -136,18 +157,7 @@ function InstallBasicPackages
 {
     echo "Function: InstallBasicPackages starting"
 
-    dnf install -y subversion
-    dnf install -y git
-    dnf install -y wget
-    dnf install -y unzip
-    dnf install -y curl
-
-    # phpMyAdmin needs to modify SELinux settings
-    # The following line is not specifically required, but will show you what package
-    # is required to install semanage (for SELinux configuration).
-    # It tells you that you will need policycoreutils-python-utils
-    yum whatprovides semanage
-    dnf install -y policycoreutils-python-utils
+    dnf install -y git wget unzip curl
 
     echo "Function: InstallBasicPackages complete"
 }
@@ -231,15 +241,22 @@ function InstallPhpMyAdmin
 {
     echo "Function: InstallPhpMyAdmin starting"
 
+    # phpMyAdmin needs to modify SELinux settings
+    # The following line is not specifically required, but will show you what package
+    # is required to install semanage (for SELinux configuration).
+    # It tells you that you will need policycoreutils-python-utils
+    yum whatprovides semanage
+    dnf install -y policycoreutils-python-utils
+
     yum -y install php-mysqlnd
 
     # Declare the PhpMyAdmin version desired
-    export VER="5.2.0"
+    #export VER="5.2.0"
 
     # Download the version specified above, then extract and relocate
-    #curl -o phpMyAdmin-${VER}-english.tar.gz  https://files.phpmyadmin.net/phpMyAdmin/${VER}/phpMyAdmin-${VER}-english.tar.gz
-    wget https://files.phpmyadmin.net/phpMyAdmin/${VER}/phpMyAdmin-${VER}-english.tar.gz
-    tar xvf phpMyAdmin-${VER}-english.tar.gz
+    #curl -o phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz  https://files.phpmyadmin.net/phpMyAdmin/${PHP_MYADMIN_VER}/phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz
+    wget https://files.phpmyadmin.net/phpMyAdmin/${PHP_MYADMIN_VER}/phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz
+    tar xvf phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz
     rm phpMyAdmin-*.tar.gz
     mv phpMyAdmin-* /usr/share/phpmyadmin
 
@@ -334,10 +351,21 @@ function ConfigureFirewall
 # ------------------------------------------------------------------------
 
 ##########################################################################
-function CreateDefaultHttpLandingPage
+function CreateDefaultIndexHtml
 {
     echo "Function: CreateDefaultLandingPage starting"
 
+    echo '<html>' >> /var/www.html/index.html          
+    echo '  <head>' >> /var/www.html/index.html          
+    echo '    <title>Apache Server Test Page</title>' >> /var/www.html/index.html          
+    echo '  </head>' >> /var/www.html/index.html          
+    echo '' >> /var/www.html/index.html          
+    echo '  <body>' >> /var/www.html/index.html          
+    echo '    <h1>LAMP Stack is alive & well on Rocky Linux 9</h1>' >> /var/www.html/index.html          
+    echo '  </body>' >> /var/www.html/index.html          
+    echo '' >> /var/www.html/index.html          
+    echo '</html>' >> /var/www.html/index.html          
+    echo '' >> /var/www.html/index.html          
 
     echo "Function: CreateDefaultLandingPage complete"
 }
@@ -432,18 +460,17 @@ then
 #    PerformUpdate
 #    InstallBasicPackages
 
-#    InstallApache
-#    ConfigureFirewall
+    InstallApache
+    ConfigureFirewall
+    CreateDefaultIndexHtml
     # Web Service (Apache httpd) should now be running
 
-#    InstallDataBase
+    InstallDataBase
     InstallPhp
-    exit
 
+#    InstallPhpMyAdmin
 
-    InstallPhpMyAdmin
-
-    InstallWordPress
+#    InstallWordPress
 fi
 
 #  Install the certificates
