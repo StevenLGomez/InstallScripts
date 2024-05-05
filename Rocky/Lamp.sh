@@ -29,7 +29,7 @@
 #     SELECT VERSION();     <== Shows the MariaDB version
 #
 #     exit;                 <== Exits & returns to the shell
-#
+
 # To set or change MySQL password:
 # mysql (starts mysql prompt)
 # use mysql;
@@ -355,17 +355,17 @@ function CreateDefaultIndexHtml
 {
     echo "Function: CreateDefaultLandingPage starting"
 
-    echo '<html>' >> /var/www.html/index.html          
-    echo '  <head>' >> /var/www.html/index.html          
-    echo '    <title>Apache Server Test Page</title>' >> /var/www.html/index.html          
-    echo '  </head>' >> /var/www.html/index.html          
-    echo '' >> /var/www.html/index.html          
-    echo '  <body>' >> /var/www.html/index.html          
-    echo '    <h1>LAMP Stack is alive & well on Rocky Linux 9</h1>' >> /var/www.html/index.html          
-    echo '  </body>' >> /var/www.html/index.html          
-    echo '' >> /var/www.html/index.html          
-    echo '</html>' >> /var/www.html/index.html          
-    echo '' >> /var/www.html/index.html          
+    echo '<html>' >> /var/www/html/index.html          
+    echo '  <head>' >> /var/www/html/index.html          
+    echo '    <title>Apache Server Test Page</title>' >> /var/www/html/index.html          
+    echo '  </head>' >> /var/www/html/index.html          
+    echo '' >> /var/www/html/index.html          
+    echo '  <body>' >> /var/www/html/index.html          
+    echo '    <h1>LAMP Stack is alive & well on Rocky Linux 9</h1>' >> /var/www/html/index.html          
+    echo '  </body>' >> /var/www/html/index.html          
+    echo '' >> /var/www/html/index.html          
+    echo '</html>' >> /var/www/html/index.html          
+    echo '' >> /var/www/html/index.html          
 
     echo "Function: CreateDefaultLandingPage complete"
 }
