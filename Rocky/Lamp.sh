@@ -1,10 +1,5 @@
 #!/bin/sh
 
-#
-# Significant contents of this script are courtesy of:
-# https://www.howtoforge.com/tutorial/centos-lamp-server-apache-mysql-php/
-#
-
 ##########################################################################
 #            POST INSTALLATION CONFIGURATION REQUIREMENTS                #
 ##########################################################################
@@ -144,7 +139,6 @@ function InstallBasicPackages
     dnf install -y subversion
     dnf install -y git
     dnf install -y wget
-    dnf install -y nano
     dnf install -y unzip
 
     # From: https://www.itsupportwale.com/blog/how-to-install-php-7-3-on-centos-8/
@@ -172,16 +166,13 @@ function InstallApache
     # The following are required to support SSL
     dnf install -y mod_ssl openssl
 
-    dnf -y install -y @httpd
+    dnf -y install -y httpd
 
     # systemctl start httpd
-    systemctl enable --now httpd.service
-
-    # Make a stub HTML page
-    echo "<h1>Hello Internet World, this is our Apache/PHP web server.</h1>" > /var/www/html/index.html
+    systemctl enable --now httpd
 
     # The following shows the status of httpd.service
-    systemctl is-enabled httpd.service
+    systemctl is-enabled httpd
 
     echo "Function: InstallApache complete"
 }
@@ -354,6 +345,17 @@ function ConfigureFirewall
 # ------------------------------------------------------------------------
 
 ##########################################################################
+function CreateDefaultHttpLandingPage
+{
+    echo "Function: CreateDefaultLandingPage starting"
+
+
+    echo "Function: CreateDefaultLandingPage complete"
+}
+# ------------------------------------------------------------------------
+
+
+##########################################################################
 function InstallCertificates
 {
     echo "Function: InstallCertificates starting"
@@ -441,8 +443,10 @@ then
     PerformUpdate
     InstallBasicPackages
 
-    ConfigureFirewall
     InstallApache
+    ConfigureFirewall
+    # Web Service (Apache httpd) should now be running
+
     InstallPhp
     InstallDataBase
 
