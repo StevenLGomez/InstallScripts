@@ -440,15 +440,17 @@ then
     echo "======================== Installing LAMP applications ========================================"
     echo "=============================================================================================="
 
-    PerformUpdate
-    InstallBasicPackages
+#    PerformUpdate
+#    InstallBasicPackages
 
-    InstallApache
-    ConfigureFirewall
+#    InstallApache
+#    ConfigureFirewall
     # Web Service (Apache httpd) should now be running
 
-    InstallPhp
     InstallDataBase
+    exit
+
+    InstallPhp
 
     InstallPhpMyAdmin
 
