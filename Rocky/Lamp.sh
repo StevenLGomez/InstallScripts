@@ -134,14 +134,13 @@
 ##########################################################################
 #
 # URL & Application definitions
-#
 
 # Download (wget) the latest version directly from the wordpress.org
 # !! Proceed with caution - wget is not always reliable inside bioMerieux
 WORDPRESS=latest.tar.gz
 WORDPRESS_URL=https://wordpress.org/${WORDPRESS}
 
-PHP_MYADMIN_VER=5..2..1
+PHP_MYADMIN_VER=5.2.1
 PHP_MYADMIN_URL=https://files.phpmyadmin.net/phpMyAdmin/${PHP_MYADMIN_VER}/phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz
 
 ##########################################################################
