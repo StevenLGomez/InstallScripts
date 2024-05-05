@@ -141,7 +141,8 @@
 WORDPRESS=latest.tar.gz
 WORDPRESS_URL=https://wordpress.org/${WORDPRESS}
 
-PHP_MYADMIN_VER="5.2.0"
+PHP_MYADMIN_VER=5..2..1
+PHP_MYADMIN_URL=https://files.phpmyadmin.net/phpMyAdmin/${PHP_MYADMIN_VER}/phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz
 
 ##########################################################################
 #
@@ -250,12 +251,8 @@ function InstallPhpMyAdmin
 
     yum -y install php-mysqlnd
 
-    # Declare the PhpMyAdmin version desired
-    #export VER="5.2.0"
-
     # Download the version specified above, then extract and relocate
-    #curl -o phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz  https://files.phpmyadmin.net/phpMyAdmin/${PHP_MYADMIN_VER}/phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz
-    wget https://files.phpmyadmin.net/phpMyAdmin/${PHP_MYADMIN_VER}/phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz
+    wget ${PHP_MYADMIN_URL}
     tar xvf phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz
     rm phpMyAdmin-*.tar.gz
     mv phpMyAdmin-* /usr/share/phpmyadmin
