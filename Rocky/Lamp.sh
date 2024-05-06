@@ -101,22 +101,9 @@
 ### For WordPress ########################################################
 # See: https://wordpress.org
 #
-# The InstallWordPress function sets the DB_NAME, DB_USER and DB_PASSWORD
-# to 'wp_db, 'wp_user' and 'wp_secret_pwd' respectively.
-#
-# NOTE that these values must be created in the database before
-#      you can expect WordPress to function properly.
-#
-#      ALSO, if these values are changed here, the InstallWordPress
-#            function must be changed accordingly
-#
-# From: http://www.daniloaz.com/en/how-to-create-a-user-in-mysql-mariadb-and-grant-permissions-on-a-specific-database/
-#       Site above includes a script option, might be worth looking at...
-#       But leaves you hanging a bit on some of the syntax, steps below work though...
-#
 # Create the necessary database entries using:
-#     mysql -u root -p                 <<== Will require root password
-#     CREATE DATABASE wordpress_db;    <<== NOTE those are backticks, not single quotes
+#     mysql -u root -p                 <<== Use root password entered in mysql_secure_installation
+#     CREATE DATABASE wordpress_db;
 #     GRANT ALL PRIVILEGES ON wordpress_db.* TO wp_user@localhost IDENTIFIED BY 'secret-pwd';
 #     FLUSH PRIVILEGES;
 #
@@ -223,7 +210,7 @@ function InstallPhp
 
     # Create dummy php test page
     echo "<?php phpinfo(); ?>" > /var/www/html/info.php
-    chmod apache:apache /var/www/html/info.php
+    chown apache:apache /var/www/html/info.php
 
     echo "Function: InstallPhp complete"
 }
@@ -320,7 +307,7 @@ function InstallWordPress
     cd /var/www/html
     tar -xvf ${WORDPRESS_PKG}
 
-    chmod -R apache:apache /var/www/html/wordpress  
+    chown -R apache:apache /var/www/html/wordpress  
 
     # Remove the original file after extracting
     rm -f ${WORDPRESS_PKG}
@@ -368,7 +355,7 @@ function CreateDefaultIndexHtml
     echo '</html>' >> /var/www/html/index.html          
     echo '' >> /var/www/html/index.html          
 
-    chmod apache:apache /var/www/html/index.html
+    chown apache:apache /var/www/html/index.html
 
     echo "Function: CreateDefaultLandingPage complete"
 }
