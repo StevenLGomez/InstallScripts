@@ -115,10 +115,9 @@
 #       But leaves you hanging a bit on some of the syntax, steps below work though...
 #
 # Create the necessary database entries using:
-#     mysql -u root -p            <<== Will require root password
-#     CREATE DATABASE `wordpress`;    <<== NOTE those are backticks, not single quotes
-#     CREATE USER 'wp_user'@'localhost' IDENTIFIED BY 'wp_secret_pwd';
-#     GRANT ALL PRIVILEGES ON wordpress.* TO 'wp_user'@'localhost';
+#     mysql -u root -p                 <<== Will require root password
+#     CREATE DATABASE wordpress_db;    <<== NOTE those are backticks, not single quotes
+#     GRANT ALL PRIVILEGES ON wordpress_db.* TO wp_user@localhost IDENTIFIED BY 'secret-pwd';
 #     FLUSH PRIVILEGES;
 #
 #     # To test the above:
@@ -137,8 +136,8 @@
 
 # Download (wget) the latest version directly from the wordpress.org
 # !! Proceed with caution - wget is not always reliable inside bioMerieux
-WORDPRESS=latest.tar.gz
-WORDPRESS_URL=https://wordpress.org/${WORDPRESS}
+WORDPRESS_PKG=latest.tar.gz
+WORDPRESS_URL=https://wordpress.org/${WORDPRESS_PKG}
 
 PHP_MYADMIN_VER=5.2.1
 PHP_MYADMIN_URL=https://files.phpmyadmin.net/phpMyAdmin/${PHP_MYADMIN_VER}/phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz
@@ -224,6 +223,7 @@ function InstallPhp
 
     # Create dummy php test page
     echo "<?php phpinfo(); ?>" > /var/www/html/info.php
+    chmod apache:apache /var/www/html/info.php
 
     echo "Function: InstallPhp complete"
 }
@@ -314,12 +314,16 @@ function InstallWordPress
 {
     echo "Function: InstallWordPress starting"
 
+    # Download the installation package directly from the Wordpress site.
     wget --no-check-certificate ${WORDPRESS_URL} --directory-prefix /var/www/html
+
     cd /var/www/html
-    tar -xvf ${WORDPRESS}
+    tar -xvf ${WORDPRESS_PKG}
+
+    chmod -R apache:apache /var/www/html/wordpress  
 
     # Remove the original file after extracting
-    rm -f ${WORDPRESS}
+    rm -f ${WORDPRESS_PKG}
     cd
 
 # After the script has finished, use the WEB installer to complete installation.
@@ -351,6 +355,7 @@ function CreateDefaultIndexHtml
 {
     echo "Function: CreateDefaultLandingPage starting"
 
+    echo '' > /var/www/html/index.html          
     echo '<html>' >> /var/www/html/index.html          
     echo '  <head>' >> /var/www/html/index.html          
     echo '    <title>Apache Server Test Page</title>' >> /var/www/html/index.html          
@@ -362,6 +367,8 @@ function CreateDefaultIndexHtml
     echo '' >> /var/www/html/index.html          
     echo '</html>' >> /var/www/html/index.html          
     echo '' >> /var/www/html/index.html          
+
+    chmod apache:apache /var/www/html/index.html
 
     echo "Function: CreateDefaultLandingPage complete"
 }
@@ -464,9 +471,9 @@ then
     InstallDataBase
     InstallPhp
 
-#    InstallPhpMyAdmin
+    InstallPhpMyAdmin
 
-#    InstallWordPress
+    InstallWordPress
 fi
 
 #  Install the certificates
