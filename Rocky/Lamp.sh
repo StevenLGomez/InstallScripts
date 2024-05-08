@@ -120,7 +120,7 @@
 ### For configuring VirtualHosts #########################################
 # After all basic sites have been created (or at least stubs in directories)
 #
-# Method 1
+# Method 1 ---------------------------------------------------------------
 #
 # Create some stub directories for experimentation
 #    cd /var/www/html
@@ -170,7 +170,7 @@
 #    sudo service httpd restart
 #    sudo setenforce 0 
 #
-# Method 1
+# Method 2 ---------------------------------------------------------------
 #    mkdir --parents /var/www/test.tutorialinux.com/public_html
 #    Add /var/www/test.tutorialinux.com/public_html/index.html 
 #
@@ -185,6 +185,17 @@
 #        ErrorLog /var/www/test.tutorialinux.com/error.log
 #    </VirtualHost>
 #
+
+# My config (currently broken, Unable to connect ...)
+# Custom VirtualHost Definitions
+#
+#    <VirtualHost *:80>
+#        ServerAdmin steve_gomez@usa.net
+#        DocumentRoot /var/www/steven-gomez.com/public_html
+#        ServerName steven-gomez.com
+#        ServerAlias steven-gomez.com
+#        ErrorLog /var/www/steven-gomez.com/error.log
+#    </VirtualHost>
 #    apachectl graceful
 #
 # Show DNS using /etc/hosts
@@ -192,13 +203,100 @@
 # Add:
 #    162.243.199.43 test.tutorialinux.com
 #
+# Method 2 ---------------------------------------------------------------
+#
+# From: https://docs.rockylinux.org/guides/web/apache-sites-enabled/
+#
+#    sudo mkdir --parents /etc/httpd/sites-available /etc/httpd/sites-enabled
+#    sudo mkdir --parents /var/www/sub-domains 
+#
+#    sudo vi /etc/httpd/conf/httpd.conf (add at very end of file:)
+#    Include /etc/httpd/sites-enabled
+#
+#    Our actual configuration files will be in /etc/httpd/sites-available and 
+#    you will symlink to them in /etc/httpd/sites-enabled.
+#
+#    This method prevents changes to a single site's configuration from 
+#    crashing ALL Apache configurations during a config reload.
+#
+#    This also allows fully specifying everything outside the default httpd.conf,
+#    and makes troubleshooting a broken site's configuration less complex.
+#
+#
+#    sudo vi /etc/httpd/sites-available/steven-gomez.com
+#
+#    <VirtualHost *:80>
+#            ServerName steven-gomez.com
+#            ServerAdmin username@rockylinux.org
+#            DocumentRoot /var/www/sub-domains/steven-gomez.com/html
+#            DirectoryIndex index.php index.htm index.html
+#            Alias /icons/ /var/www/icons/
+#            # ScriptAlias /cgi-bin/ /var/www/sub-domains/steven-gomez.com/cgi-bin/
+#    
+#        CustomLog "/var/log/httpd/steven-gomez.com-access_log" combined
+#        ErrorLog  "/var/log/httpd/steven-gomez.com-error_log"
+#    
+#            <Directory /var/www/sub-domains/steven-gomez.com/html>
+#                    Options -ExecCGI -Indexes
+#                    AllowOverride None
+#    
+#                    Order deny,allow
+#                    Deny from all
+#                    Allow from all
+#    
+#                    Satisfy all
+#            </Directory>
+#    </VirtualHost>
+#
+#    OR - better yet, include the HTTPS directives needed to support let's encrypt keys.
+#
+#    <VirtualHost *:80>
+#            ServerName steven-gomez.com
+#            ServerAdmin steve_gomez@usa.net
+#            Redirect / https://steven-gomez.com/
+#    </VirtualHost>
+#    <Virtual Host *:443>
+#            ServerName steven-gomez.com
+#            ServerAdmin steve_gomez@usa.net
+#            DocumentRoot /var/www/sub-domains/steven-gomez.com/html
+#            DirectoryIndex index.php index.htm index.html
+#            # Alias /icons/ /var/www/icons/
+#            # ScriptAlias /cgi-bin/ /var/www/sub-domains/steven-gomez.com/cgi-bin/
+#    
+#        CustomLog "/var/log/`http`d/steven-gomez.com-access_log" combined
+#        ErrorLog  "/var/log/`http`d/steven-gomez.com-error_log"
+#    
+#            SSLEngine on
+#            SSLProtocol all -SSLv2 -SSLv3 -TLSv1
+#            SSLHonorCipherOrder on
+#            SSLCipherSuite EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384
+#    :EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS
+#    
+#            SSLCertificateFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.crt/com.wiki.www.crt
+#            SSLCertificateKeyFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.key/com.wiki.www.key
+#            SSLCertificateChainFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.crt/your_providers_intermediate_certificate.crt
+#    
+#            <Directory /var/www/sub-domains/steven-gomez.com/html>
+#                    Options -ExecCGI -Indexes
+#                    AllowOverride None
+#    
+#                    Order deny,allow
+#                    Deny from all
+#                    Allow from all
+#    
+#                    Satisfy all
+#            </Directory>
+#    </VirtualHost>
+#    
+#
+#
+#
+#    sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/html
+#    Then create the HTML in the directory created above.
 #
 #
 #
 #
-#
-#
-
 
 
 
@@ -450,38 +548,35 @@ function CreateDefaultIndexHtml
 
 
 ##########################################################################
-function InstallCertificates
+function InstallApacheCertificates
 {
-    echo "Function: InstallCertificates starting"
+    echo "Function: InstallApacheCertificates starting"
 
-    # Install snapd - from https://snapcraft.io/docs/installing-snap-on-rocky
+    # From: https://docs.rockylinux.org/guides/security/generating_ssl_keys_lets_encrypt/
+
     dnf -y install epel-release
-    dnf -y install snapd
-    systemctl enable --now snapd.socket
-
-    # Create 'classic' link for snap
-    ln -s /var/lib/snapd/snap /snap
-
-    # Poorly documented, but this step is needed to create 'seed'
-    systemctl status snapd.seeded.service
-
-    # Install certbot - from https://certbot.eff.org/instructions?ws=apache&os=centosrhel8
-    snap install core; snap refresh core
-
-    # Check for and remove old version of certbot
-    dnf -y remove certbot
-
-    # Install new certbot
-    snap install --classic certbot
-    ln -s /snap/bin/certbot /usr/bin/certbot
+    dnf -y install certbot python3-certbot-apache
 
     # The following step requires user interaction to enter domain information
-    certbot --apache
+    certbot certonly --apache
 
     # The following tests automatic renewal
     certbot renew --dry-run
 
-    echo "Function: InstallCertificates complete"
+    echo "Function: InstallApacheCertificates complete"
+}
+# ------------------------------------------------------------------------
+
+##########################################################################
+function InstallNginxCertificates
+{
+    echo "Function: InstallNginxCertificates starting"
+
+    # From: https://docs.rockylinux.org/guides/security/generating_ssl_keys_lets_encrypt/
+
+    echo "Implementation pending..... , but expected to be similar to InstallApacheCertificates()"
+
+    echo "Function: InstallNginxCertificates complete"
 }
 # ------------------------------------------------------------------------
 
@@ -531,9 +626,9 @@ echo "Applying ACTION_TYPE:  ${ACTION_TYPE}"
 #  Start the installation procedure....
 if [ $ACTION_TYPE = "INSTALL" ]
 then
-    echo "=============================================================================================="
-    echo "======================== Installing LAMP applications ========================================"
-    echo "=============================================================================================="
+    echo "========================================================================================="
+    echo "=================== Installing LAMP applications ========================================"
+    echo "========================================================================================="
 
 #    PerformUpdate
 #    InstallBasicPackages
@@ -554,11 +649,11 @@ fi
 #  Install the certificates
 if [ $ACTION_TYPE = "ADD_CERTS" ]
 then
-    echo "=============================================================================================="
-    echo "======================== Setting up Certificates ============================================="
-    echo "=============================================================================================="
+    echo "========================================================================================="
+    echo "=================== Setting up Certificates ============================================="
+    echo "========================================================================================="
 
-    InstallCertificates
+    InstallApacheCertificates
 
 fi
 
