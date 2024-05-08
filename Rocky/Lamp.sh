@@ -117,6 +117,93 @@
 #     exit;          <<== To return to shell
 #
 
+### For configuring VirtualHosts #########################################
+# After all basic sites have been created (or at least stubs in directories)
+#
+# Method 1
+#
+# Create some stub directories for experimentation
+#    cd /var/www/html
+#    sudo mkdir site1
+#    sudo mkdir site2
+#    sudo chown apache:apache -R site1
+#    sudo chown apache:apache -R site2
+#
+# Create sites-available & sites-enabled directories
+#    cd /etc/httpd
+#    sudo mkdir sites-available
+#    sudo mkdir sites-enabled
+#
+#    sudo vi /etc/httpd/conf/httpd.conf <== At end of this file, add:
+#    IncludeOptional sites-enabled/*.conf
+#
+#    cd sites-available
+#    sudo vi site1.com.conf
+#
+#    <VirtualHost *:80>
+#
+#        ServerName www.site1.com
+#        ServerAlias site1.com
+#        DocumentRoot /var/www/html/site1/
+#        ErrorLog /var/www/html/site1/error.log
+#        CustomLog /var/www/html/site1/requests.log combined
+#    </VirtualHost>
+#
+#    sudo cp site1.com.conf site2.com.conf
+#    sudo vi site2.com.conf (then change 1s to 2s)
+#
+#    <VirtualHost *:80>
+#
+#        ServerName www.site2.com
+#        ServerAlias site2.com
+#        DocumentRoot /var/www/html/site2/
+#        ErrorLog /var/www/html/site2/error.log
+#        CustomLog /var/www/html/site2/requests.log combined
+#    </VirtualHost>
+#
+# Create symbolic links from sites-available into sites-enabled
+#
+#    sudo ln -s /etc/httpd/sites-available/site1.com.conf /etc/httpd/sites-enabled/site1.com.conf
+#    sudo ln -s /etc/httpd/sites-available/site2.com.conf /etc/httpd/sites-enabled/site2.com.conf
+#
+# Restart Apache
+#    sudo service httpd restart
+#    sudo setenforce 0 
+#
+# Method 1
+#    mkdir --parents /var/www/test.tutorialinux.com/public_html
+#    Add /var/www/test.tutorialinux.com/public_html/index.html 
+#
+#    vi /etc/httpd/conf/httpd.conf (At very end of file, after IncludeOptional)
+#
+#    #Custom VirtualHosts
+#    <VirtualHost *:80>
+#        ServerAdmin webmaster@tutorialinux.com
+#        DocumentRoot /var/www/test.tutorialinux.com/public_html
+#        ServerName test.tutorialinux.com
+#        ServerAlias tutorialinux.com
+#        ErrorLog /var/www/test.tutorialinux.com/error.log
+#    </VirtualHost>
+#
+#    apachectl graceful
+#
+# Show DNS using /etc/hosts
+#
+# Add:
+#    162.243.199.43 test.tutorialinux.com
+#
+#
+#
+#
+#
+#
+#
+
+
+
+
+##########################################################################
+##########################################################################
 ##########################################################################
 #
 # URL & Application definitions
@@ -368,6 +455,7 @@ function InstallCertificates
     echo "Function: InstallCertificates starting"
 
     # Install snapd - from https://snapcraft.io/docs/installing-snap-on-rocky
+    dnf -y install epel-release
     dnf -y install snapd
     systemctl enable --now snapd.socket
 
