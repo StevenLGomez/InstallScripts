@@ -1,0 +1,87 @@
+<!DOCTYPE Project SYSTEM "http://www.slickedit.com/dtd/vse/10.0/vpj.dtd">
+<Project
+	Version="10.0"
+	VendorName="SlickEdit"
+	TemplateName="Python - Empty Project"
+	WorkingDir=".">
+	<Files>
+		<Folder
+			Name="Source Files"
+			Filters="*.py"
+			GUID="{A58558CD-F342-467B-A3A4-E461E494EEE3}">
+			<F N="AddHostNames.sh"/>
+			<F N="k8s-install.sh"/>
+			<F N="kind-podman.sh"/>
+			<F N="README.md"/>
+			<F N="set-config.sh"/>
+		</Folder>
+		<Folder
+			Name="Other Files"
+			Filters=""
+			GUID="{97EAF96C-D655-4B70-87AA-EE8BB3782DAF}">
+			<F N="Manning.txt"/>
+		</Folder>
+	</Files>
+	<Config
+		Name="Debug"
+		DebugCallbackName="dap"
+		Type="python"
+		OutputFile=""
+		AppType="python"
+		CompilerConfigName="">
+		<Menu>
+			<Target
+				Name="Execute"
+				MenuCaption="E&amp;xecute"
+				Dialog="_python_options_form Run"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveWorkspaceFiles"
+				RunFromDir="%rw"
+				Deletable="0">
+				<Exec CmdLine='"%(SLICKEDIT_PYTHON_EXE)" %(SLICKEDIT_PYTHON_EXECUTE_ARGS) "%f" %~other'/>
+			</Target>
+			<Target
+				Name="Debug"
+				MenuCaption="&amp;Debug"
+				Dialog="_python_options_form Debug"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveNone"
+				RunFromDir="%rw"
+				Deletable="0">
+				<Exec
+					CmdLine="python_debug"
+					Type="Slick-C"/>
+			</Target>
+			<Target
+				Name="Python Options"
+				MenuCaption="Python &amp;Options"
+				ShowOnMenu="HideIfNoCmdLine"
+				Deletable="0">
+				<Exec
+					CmdLine="pythonoptions"
+					Type="Slick-C"/>
+			</Target>
+		</Menu>
+		<List Name="Python Options">
+			<Item
+				Name="DefaultFile"
+				Value=""/>
+		</List>
+		<List Name="pydbgp Options">
+			<Item
+				Name="ServerHost"
+				Value="127.0.0.1"/>
+			<Item
+				Name="ServerPort"
+				Value="0"/>
+			<Item
+				Name="ListenInBackground"
+				Value="1"/>
+			<Item
+				Name="show_hidden"
+				Value="0"/>
+		</List>
+	</Config>
+	<List Name="RTE">
+	</List>
+</Project>

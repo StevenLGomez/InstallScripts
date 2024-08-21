@@ -1,0 +1,69 @@
+
+Attempted on vCenter - 2023-10-23
+Install was Fedora 38-16
+
+[developer@fedora ~]$ cat ~/install-history.txt
+    1  ls -l Downloads/
+    2  exit
+    3  clear
+    4  ls -al
+    5  dnf -y update
+    6  sudo dnf -y update
+    7  sudo dnf -y install vim git wget curl
+    8  exit
+    9  which kind
+   10  cd Downloads/
+   11  ls -al
+   12  getenforce
+   13  sudo dnf install gnome-terminal
+   14  sudo dnf install ./docker-desktop-4.23.0-x86_64.rpm
+   15  sudo dnf -y install dnf-plugins-core
+   16  dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+   17  sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+   18  sudo dnf install ./docker-desktop-4.23.0-x86_64.rpm
+   19  history
+   20  docker --version
+   21  ls -l /usr/local
+   22  ls -l /usr/local/bin
+   23  cd
+   24  pushd Downloads
+   25  sudo chmod +x ./kind-linux-amd64 /usr/local/bin/kind
+   26  ls -al
+   27  sudo chmod +x ./kind-linux-amd64
+   28  mv ./kind-linux-amd64 /usr/local/bin/kind
+   29  sudo mv ./kind-linux-amd64 /usr/local/bin/kind
+   30  which kind
+   31  ls -al
+   32  kind create cluster
+   33  clear
+   34  kind
+   35  docker ps
+   36  clear
+   37  kind create cluster
+   38  kubectl get pods
+   39  kubectl get nodes
+   40  kind --help
+   41  exit
+   42  history
+   43  kubectl get pods
+   44  kubectl get nodes
+   45  clear
+   46  history > ~/install-history.txt
+Linux fedora 6.4.15-200.fc38.x86_64 #1 SMP PREEMPT_DYNAMIC Thu Sep  7 00:25:01 UTC 2023 x86_64 GNU/Linux
+
+[developer@fedora ~]$ kubectl get pods
+E1023 08:31:34.525949   51435 memcache.go:265] couldn't get current server API group list: Get "https://127.0.0.1:35713/api?timeout=32s": dial tcp 127.0.0.1:35713: connect: connection refused
+E1023 08:31:34.529640   51435 memcache.go:265] couldn't get current server API group list: Get "https://127.0.0.1:35713/api?timeout=32s": dial tcp 127.0.0.1:35713: connect: connection refused
+E1023 08:31:34.530321   51435 memcache.go:265] couldn't get current server API group list: Get "https://127.0.0.1:35713/api?timeout=32s": dial tcp 127.0.0.1:35713: connect: connection refused
+E1023 08:31:34.536568   51435 memcache.go:265] couldn't get current server API group list: Get "https://127.0.0.1:35713/api?timeout=32s": dial tcp 127.0.0.1:35713: connect: connection refused
+E1023 08:31:34.537264   51435 memcache.go:265] couldn't get current server API group list: Get "https://127.0.0.1:35713/api?timeout=32s": dial tcp 127.0.0.1:35713: connect: connection refused
+The connection to the server 127.0.0.1:35713 was refused - did you specify the right host or port?
+
+[developer@fedora ~]$ kubectl get nodes
+E1023 08:32:13.732904   51460 memcache.go:265] couldn't get current server API group list: Get "https://127.0.0.1:35713/api?timeout=32s": dial tcp 127.0.0.1:35713: connect: connection refused
+E1023 08:32:13.734098   51460 memcache.go:265] couldn't get current server API group list: Get "https://127.0.0.1:35713/api?timeout=32s": dial tcp 127.0.0.1:35713: connect: connection refused
+E1023 08:32:13.737909   51460 memcache.go:265] couldn't get current server API group list: Get "https://127.0.0.1:35713/api?timeout=32s": dial tcp 127.0.0.1:35713: connect: connection refused
+E1023 08:32:13.738884   51460 memcache.go:265] couldn't get current server API group list: Get "https://127.0.0.1:35713/api?timeout=32s": dial tcp 127.0.0.1:35713: connect: connection refused
+E1023 08:32:13.740894   51460 memcache.go:265] couldn't get current server API group list: Get "https://127.0.0.1:35713/api?timeout=32s": dial tcp 127.0.0.1:35713: connect: connection refused
+The connection to the server 127.0.0.1:35713 was refused - did you specify the right host or port?
+

@@ -1,0 +1,13 @@
+---
+From: https://www.linuxtechi.com/configure-nfs-persistent-volume-kubernetes/
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc     # Name of PVC
+spec:
+  storageClassName: nfs  # Name of Storage Class, use same as in PV
+  accessModes:
+    - ReadWriteMany      # Specify the same access mode as in PV
+  resources:
+    requests:
+      storage: 10Gi      # Amount of Storage requested

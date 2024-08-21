@@ -1,0 +1,20 @@
+---
+# From: https://www.linuxtechi.com/configure-nfs-persistent-volume-kubernetes/
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv       # Name of Persistent Volume
+spec:
+  capacity:
+    storage: 10Gi    # Storage Capacity
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany  # Access Mode
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: nfs
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /opt/k8s-pods/data   # NFS Share
+    server: 192.168.1.40       # NFS Server IP

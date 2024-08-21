@@ -1,0 +1,54 @@
+
+# For Rocky 8
+dnf -y update
+
+dnf install -y epel-release
+dnf install -y dkms kernel-devel kernel-headers gcc make bzip2 perl elfutils-libelf-devel
+
+# Confirm the running and installed kernel versions match
+rpm -q kernel-devel
+uname -r
+
+# If the versions reported above do not match, update using
+# dnf update kernel-*
+# Reboot
+
+# wget http://download.virtualbox.org/virtualbox/6.1.22/VBoxGuestAdditions_6.1.22.iso -P /tmp
+# mount /tmp/VBoxGuestAdditions_6.1.22.iso /run/media/
+
+/run/media/root/VBox_Gas_6.1.30/VBoxLinuxAdditions.run
+
+reboot
+
+# For Rocky 9.2 - On VirtualBox 7.0.10 
+
+# EPEL required for DKMS
+sudo dnf install epel-release -y
+sudo dnf install dkms kernel-devel kernel-headers gcc make bzip2 perl elfutils-libelf-devel
+
+$ rpm -q kernel-devel	
+kernel-devel-5.14.0-70.17.1.el9_0.x86_64
+
+$ uname -r
+5.14.0-70.13.1.el9_0.x86_64
+
+# if the kernel versions do not match, update using
+sudo dnf update -y
+
+sudo reboot now
+
+# Installing Guest Additions
+# Open terminal
+# Click on Devices -> Insert Guest Additions CD
+# Ignore the popup dialog, return to terminal 
+cd /run/media/developer/VBox_GAs_7.0.10
+sudo ./VBoxLinuxAdditions.run
+reboot
+
+# Screen flickering issues
+# Open terminal
+sudo vi /etc/gdm/custom.conf
+# Find WaylandEnable property, make sure that it is set to false and that the line is not commented out.
+# May also be necessary to add: DefaultSession=gnome=xorg.desktop in [daemon] section.
+
+

@@ -1,0 +1,207 @@
+
+Kubernetes setup video
+
+https://www.youtube.com/watch?v=2Tr7hNW02fg
+
+Created 3 VMs - Server with GUI
+	k-master	10.1.1.200	4 Meg Ram 100G HD	2 cpu
+	k-node-1	10.1.1.201	4 Meg Ram 100G HD	2 cpu
+	k-node-2	10.1.1.202	4 Meg Ram 100G HD	2 cpu
+	
+Video starting @ 4:30
+
+On k-master:
+# Configure Firewall
+firewall-cmd --permanent --add-port=6443/tcp
+firewall-cmd --permanent --add-port=2379-2380/tcp
+firewall-cmd --permanent --add-port=10250/tcp
+firewall-cmd --permanent --add-port=10251/tcp
+firewall-cmd --permanent --add-port=10252/tcp
+firewall-cmd --permanent --add-port=10255/tcp
+
+# Also open dynamic ports 30000 - 32767 for "NotePort" access.
+firewall-cmd --permanent --add-port=30000-32767/tcp
+firewall-cmd --zone=trusted --permanent --add-source=10.1.0.0/24
+firewall-cmd --add-masquerade --permanent
+
+# Netfilter offers various functions and operation for packet filtering, 
+# network address translation, and port translation, which provides functionality 
+# required for directly
+# modprobe - program to add and remove modules from the linux kernel
+modprobe br_netfilter
+systemctl restart firewalld
+
+# Add cluster information to /etc/hosts
+10.1.1.200 k-master
+10.1.1.201 k-node-1
+10.1.1.202 k-node-2
+
+# Add Docker packages
+dnf config-manager --add-repo=https://downlaod.docker.com/linux/centos/docker-ce.repo
+dnf install -y docker-ce --nobest --allowerasing
+systemctl enable --now docker
+usermod -aG docker admin
+
+# As admin (tests docker)
+docker --version
+docker run hello-world
+
+# Edit (create) /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum.repos/kubernetes-el7-x86_64
+enabled=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+# Install Kubernetes
+dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+
+# Edit /etc/sysconfig/kubelet - Add:
+KUBELET_EXTRA_ARGS= --runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice
+
+# Start Kubernetes service
+systemctl enable --now kubelet
+
+# !! systemctl status kubelet   <= Show failure
+
+# Edit (create) /etc/sysctl.d/k8s.conf - Add:
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+
+# Load the new configuration
+sysctl --system
+
+# Disable swap, and remove entry from /etc/fstab to permanently disable it
+swapoff -a
+
+# vi /etc/fstab, comment out swap line
+
+# Create a docker Daemon File - /etc/systemd/ysstem/docker.service.d
+{
+    "exec-opts":["native.cgroupdriver=systemd"],
+	"log-driver": "json-file",
+	"log-opts": {
+	    "max-size": 100a"
+    },
+	"storage-driver": "overlay2",
+	"storage-opts": [
+	    "overlays2.override_kernel_check=true"
+	]
+}
+
+mkdir -p /etc/systemd/system/docker.service.d
+systemctl daemon-reload
+systemctl restart docker
+
+
+
+
+
+
+# Second option from:
+# https://dzone.com/articles/kubernetes-installation-in-redhat-centos
+
+# Step 1 - Update the host names if they are not already what you want
+vi /etc/hosts
+
+# Step 2 - Update OS
+yum -y update
+
+# Step 3 - Disable SELinux
+setenforce 0
+sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+# Step 4 - Disable swap
+swapoff -a && sed -i '/swap/d' /etc/fstab
+
+# Step 5 - Open firewall ports
+firewall-cmd --permanent --add-port=6443/tcp
+firewall-cmd --permanent --add-port=2379-2380/tcp
+firewall-cmd --permanent --add-port=10250/tcp
+firewall-cmd --permanent --add-port=10251/tcp
+firewall-cmd --permanent --add-port=10252/tcp
+firewall-cmd --permanent --add-port=10255/tcp
+firewall-cmd –-reload
+
+# Disable the firewall (only if problems are encountered, not recommended)
+systemctl stop firewalld
+systemctl disable firewalld
+
+# Step 6 - Update IP tables
+modprobe br_netfilter
+echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
+
+# Step 7 - Create Kubernetes (page says in nodes ?? is this needed on the master ??)
+nano /etc/yum.repos.d/kubernetes.repo
+
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+# Add Docker repository
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# To download external packages
+subscription-manager repos --enable=rhel-7-server-extras-rpms
+
+# Step 8 - Install docker & Kubernetes components
+yum install kubelet kubeadm kubectl docker -y
+
+# Step 9 - Start Kubernetes & Docker
+systemctl start docker && systemctl enable docker
+systemctl start kubelet && systemctl enable kubelet
+
+# Step 10 - To run cluster in Mastter node, run this only on k-master (NOTE IP address must be master ip)
+kubeadm init --apiserver-advertise-address=10.17.20.115 --ignore-preflight-errors all --pod-network-cidr=10.244.0.0/16 --token-ttl 0
+
+Confusing text follows (just above the kubeadmin init command above):
+apiserver address must be masternode IP (10.1.5.46) address
+
+You can see the below output
+
+After the successful start of kubadm master, we need to run the above-shown 
+command from the non-root or root user then only a user can control the kubectl 
+commands.
+
+Run the command
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# Step 11 - Check if all pods are running
+kubectl get pods –all-namespaces
+
+# Step 12 - To install Flannel Pod network driver
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+# Step 13 - To Taint master node as a master (Run on master node ....  at least assuming so)
+kubectl taint nodes --all node-role.kubernetes.io/master-
+
+# Step 14 - Join the Worker Nodes to Master Node (run on worker nodes, apparently the taint command generates the token)
+kubeadm join 10.1.5.46:6443 –token lixbn2.aea4n63ypd42578
+
+# Step 15 - Install Kubernetes Dashboard
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
+
+# Create a service account    dashboard(username) for the dashboard
+kubectl create serviceaccount dashboard -n default
+
+# Give admin access to    user(dashboard)  to bind with cluster
+kubectl create clusterrolebinding dashboard-admin -n default  --clusterrole=cluster-admin --
+serviceaccount=default:dashboard
+
+# Generate key for    user(dashboard)   to accss dashboard  
+kubectl get secret $(kubectl get serviceaccount dashboard -o jsonpath="{.secrets[0].name}") -o jsonpath="{.data.token}" | base64 --decode
+
+# Start the dashboard service  (copy and save the key)
+kubectl proxy  
+
+# Paste the key into the following URL
+http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/.
+
