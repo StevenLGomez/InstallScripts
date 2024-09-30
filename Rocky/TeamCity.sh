@@ -9,7 +9,7 @@
 ##########################################################################
 
 # The TeamCity Server package is stored on internal server
-APPLICATION_SERVER_URL=http://devserver/Applications/TeamCity
+APPLICATION_SERVER_URL=http://10.1.1.20/Applications/TeamCity
 
 TC_NAME=TeamCity
 TC_VERSION=2024.07.2
