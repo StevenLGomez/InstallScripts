@@ -1,6 +1,5 @@
-# Installation steps borrowed from NPSV Documentation
 
-# 20201003 - Modified for CentOS 8 to reinstall on esximgmt
+# 20240930 - Modified for Rocky 9 installation on esximgmt
 #
 #            For proper installation, specific configuration steps are requred.
 #            See this repository's README.md for further details.
@@ -10,12 +9,15 @@
 ##########################################################################
 
 # The TeamCity Server package is stored on internal server
-APPLICATION_SERVER_URL=http://10.1.1.26/Applications/TeamCity
+APPLICATION_SERVER_URL=http://devserver/Applications/TeamCity
 
-TC_VERSION=2020.2.1
+TC_NAME=TeamCity
+TC_VERSION=2024.07.2
 TC_EXT=.tar.gz
-TC_SRC=TeamCity-${TC_VERSION}
-TC_PKG=${TC_SRC}${TC_EXT}
+
+# Full name of TeamCity Package: ${TC_NAME}-${TC_VERSION}${TC_EXT}
+TC_PKG=${TC_NAME}-${TC_VERSION}${TC_EXT}
+
 TC_URL=${APPLICATION_SERVER_URL}/${TC_PKG}
 
 ##########################################################################
