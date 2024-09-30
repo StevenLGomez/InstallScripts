@@ -8,7 +8,7 @@
 ##########################################################################
 ##########################################################################
 
-# The TeamCity Server package is stored on internal server
+# The following URL needs to be adapted to individual environments
 APPLICATION_SERVER_URL=http://10.1.1.20/Applications/TeamCity
 
 TC_NAME=TeamCity
@@ -76,7 +76,7 @@ function InstallTeamCity
 
     # Allow TeamCity write permissions to its directories
     chown -R admin:admin /opt/TeamCity
-    chown -R admin:admin /opt/TCData
+    chown -R admin:admin /opt/TcData
     
     # Open the necessary ports for TeamCity web services
     firewall-cmd --zone=public --permanent --add-port=8111/tcp
