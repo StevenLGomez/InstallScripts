@@ -125,20 +125,17 @@ Create partition on /dev/sdb & /dev/sdc using the following commands
 `df -h`
 
 **After confirming that the external drives connected properly, install git:**  
-`dnf -y install git`
+`sudo dnf -y install git`
 
 **A VM snapshot may be desired at this point.  To run the TeamCity installation script:**  
-`mkdir repositories`  
-`cd repositories`  
 `git clone http://usstlgit03:7990/TBD/InstallScripts.git`  
-`cd InstallScripts`  
-`chmod +x TeamCity.sh`  
-`./TeamCity.sh`
+`cd InstallScripts/Rocky`  
+`sudo ./TeamCity.sh`
 
 ------------
 
 **After the script has run to completion, configure the database:**  
-`mariadb_secure_installation   <-- Assign root password \(**and remember it**\), then answer Y to all questions  
+`sudo mysql_secure_installation   <-- Assign root password \(**and remember it**\), then answer Y to all questions  
 
 `mysql -u root -p       <-- Create database & access account for TeamCity`  
 `create database cidb character set UTF8 collate utf8_bin;`  
