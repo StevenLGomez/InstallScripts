@@ -33,7 +33,7 @@ function PerformUpdate
 function InstallBasicApplications
 {
     // yum -y install git wget unzip rsync java-17-openjdk-headless.x86_64
-    yum -y install git wget unzip rsync java-17-openjdk-headless.x86_64
+    yum -y install git wget unzip rsync java-11-openjdk-headless.x86_64
     
     if grep -q JAVA_HOME /home/admin/.bashrc; then
         echo "JAVA_HOME already included in admin/.bashrc (skipping)"
