@@ -14,7 +14,7 @@
 ###  For Database - MariaDB
 # Configuration notes
 #
-# Run: sudo mysql_secure_installation
+# Run: mysql_secure_installation - MUST run as root, sudo doesn't seem to work
 #
 #      * If root password was not previously set, press enter for option to create it
 #      * Set root password               Temporarily use C...S...00
@@ -69,26 +69,6 @@
 #
 # Log in using your database credentials - use root password set with mysql-secure-installation
 #
-# TBD OLD notes follow
-# Edit /etc/httpd/conf.d/phpMyAdmin.conf
-# Comment all instances of Require ip 127.0.0.1
-# Comment all instances of Require ip ::1
-# Comment all instances of Allow from 127.0.0.1
-# Comment all instances of Allow from ::1
-# For all of the items commented above, add the line:
-# Require all granted
-
-# Other notes (TBD - investigate their need)
-# The following is still a work in progress....
-
-## Create user that will have permission to upload site content
-## NOTE, the following will give a (desired) warning about the directory
-## already existing
-## Must also set password using passwd webdeveloper
-# adduser -d /var/www/html -G apache webdeveloper
-# chgrp -R apache /var/www/html
-# sudo chmod -R g+w /var/www/html
-# sudo chmod g+s /var/www/html
 
 ##
 ## Then restart Apache again with:
@@ -96,7 +76,6 @@
 ##
 ## Also set up Web Server Authentication Gate and .htaccess file per:
 ## https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-phpmyadmin-with-apache-on-a-centos-7-server
-
 
 ### For WordPress ########################################################
 # See: https://wordpress.org
@@ -116,6 +95,22 @@
 #
 #     exit;          <<== To return to shell
 #
+# SELinux Alerts - On Rocky 9 needed to update security settings
+#
+# * Allow php-fpm to have write access on the wordpress directory *
+# semanage fcontext -a -t httpd_sys_rw_content_t 'wordpress'
+# restorecon -v 'wordpress'
+#
+# * If you want to allow httpd to 'unified' *
+# setsebool -P httpd_unified 1
+#
+# * If you believe that php-fpm should be allowd write access on the wordpress directory by default *
+# !! You should report this as a bug !!
+# ausearch -c 'php-fpm' --raw | audit2allow -M my-phpfpm
+# semodule -X 300 -i my-phpfpm.pp
+#
+
+
 
 ### For configuring VirtualHosts #########################################
 # After all basic sites have been created (or at least stubs in directories)
@@ -392,7 +387,7 @@ function InstallPhp
 
     # Apache (httpd) PHP Installation, and extra packages
     sudo dnf install -y php 
-    sudo dnf install php-cli php-fpm php-curl php-mysqlnd php-gd php-opcache php-zip \
+    sudo dnf install -y php-cli php-fpm php-curl php-mysqlnd php-gd php-opcache php-zip \
         php-common php-bcmath php-imagick php-xmlrpc php-json php-readline \
         php-memcached php-redis php-mbstring php-apcu php-xml php-dom php-redis \
         php-memcached php-memcache php-pear
