@@ -310,7 +310,7 @@
 WORDPRESS_PKG=latest.tar.gz
 WORDPRESS_URL=https://wordpress.org/${WORDPRESS_PKG}
 
-PHP_MYADMIN_VER=5.2.1
+PHP_MYADMIN_VER=5.2.2
 PHP_MYADMIN_URL=https://files.phpmyadmin.net/phpMyAdmin/${PHP_MYADMIN_VER}/phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz
 
 ##########################################################################
@@ -374,41 +374,40 @@ function InstallDataBase
 
 ##########################################################################
 # Install PHP
+# From: https://linuxcapable.com/how-to-install-php-on-rocky-linux/
 #
 function InstallPhp
 {
     echo "Function: InstallPhp starting"
 
-    # dnf install -y php-{common,gmp,fpm,curl,intl,pdo,gd,xml,cli,zip,mysqli}
+    # Enable CRB to provide access to more development tools
+    sudo dnf config-manager --set-enabled crb
 
-    # Add other PHP modules as needed (desired?) - dnf search php
-    # dnf -y install php-mysqlnd php-pecl-zip php-bcmath
+    # Install EPEL repositories
+    sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
+        https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
 
-    # This group supports phpMyAdmin
-    # dnf -y install php-json php-mbstring
+    sudo dnf install -y dnf-utils http://rpms.remirepo.net/enterprise/remi-release-9.rpm
+    sudo dnf module enable php:remi-8.4 -y
 
-    # This group supports WordPress, Joomla & Drupal
-    # dnf -y install php-ldap php-odbc php-pear php-soap curl-devel
+    # Apache (httpd) PHP Installation, and extra packages
+    sudo dnf install -y php 
+    sudo dnf install php-cli php-fpm php-curl php-mysqlnd php-gd php-opcache php-zip \
+        php-common php-bcmath php-imagick php-xmlrpc php-json php-readline \
+        php-memcached php-redis php-mbstring php-apcu php-xml php-dom php-redis \
+        php-memcached php-memcache php-pear
 
-    # The steps above would install PHP 8.0.x from Rocky Repos, but 8.2+ is needed for Laravel
+    sudo dnf -y install php php-{cgi,gettext,imap,pdo,mysqli,odbc}
 
-    # Enable remi & epel repositories
-    dnf -y install http://rpms.remirepo.net/enterprise/remi-release-9.rpm
-    dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-
-    dnf makecache -y
-    dnf repolist
-    dnf module reset php -y
-
-    dnf module -y install php:remi-8.3
-    dnf -y install php php-{common,pear,cgi,curl,mbstring,gd,mysqlnd,gettext,bcmath,json,xml,fpm,intl,zip,imap,pdo,cli,mysqli}
+    # Install development & debugging tools
+    sudo dnf -y install php-devel php-xdebug php-pcov
 
     # This group supports WordPress, Joomla & Drupal 
-    dnf -y install php-ldap php-odbc php-pear php-soap curl-devel
+    sudo dnf -y install php-ldap php-soap curl-devel
 
     # Install connector & start PHP connection to Apache
-    dnf -y install php-fpm
-    systemctl enable --now php-fpm
+    sudo dnf -y install php-fpm
+    sudo systemctl enable --now php-fpm
 
     # Show php version
     php --version
@@ -653,8 +652,8 @@ then
     echo "=================== Installing LAMP applications ========================================"
     echo "========================================================================================="
 
-#    PerformUpdate
-#    InstallBasicPackages
+    PerformUpdate
+    InstallBasicPackages
 
     InstallApache
     ConfigureFirewall
