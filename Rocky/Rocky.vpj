@@ -20,7 +20,6 @@
             Filters=""
             GUID="{37E99780-EBB8-4611-9C7A-3CE0F85597F8}">
             <F N="GuestAdditions.txt"/>
-            <F N="KubernetesInstallationNotes.txt"/>
             <F N="README.md"/>
         </Folder>
     </Files>
