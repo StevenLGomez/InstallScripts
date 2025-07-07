@@ -127,28 +127,7 @@
             <Exec CmdLine='as -o "%bd%n.o" "%f"'/>
         </Rule>
     </Rules>
-    <Files>
-        <Folder
-            Name="Source Files"
-            Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.c++;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.scala;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl;*.d;*.m;*.mm;*.go;*.groovy;*.gsh"
-            GUID="{82E9C8AE-4219-4236-8219-F098A85CC255}">
-            <F N="DevTools.sh"/>
-            <F N="Lamp.sh"/>
-            <F N="MariaDB.sh"/>
-            <F N="Redmine.sh"/>
-            <F N="SqueezeBox.sh"/>
-            <F N="tc-agent.sh"/>
-            <F N="TeamCity.sh"/>
-            <F N="VsCode.sh"/>
-            <F N="Wine.sh"/>
-        </Folder>
-        <Folder
-            Name="Other Files"
-            Filters=""
-            GUID="{5114C7D8-302E-4120-ADF0-A0BBBCA6CF67}">
-            <F N="README.md"/>
-        </Folder>
-    </Files>
+    <Files></Files>
     <List Name="RTE">
     </List>
 </Project>

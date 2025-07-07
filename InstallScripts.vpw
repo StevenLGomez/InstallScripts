@@ -1,7 +1,6 @@
 <!DOCTYPE Workspace SYSTEM "http://www.slickedit.com/dtd/vse/10.0/vpw.dtd">
 <Workspace Version="10.0" VendorName="SlickEdit">
     <Projects>
-        <Project File="CentOS/CentOS.vpj"/>
         <Project File="CentOS_8/CentOS_8.vpj"/>
         <Project File="Fedora_31/Fedora_31.vpj"/>
         <Project File="Kubernetes/Kubernetes.vpj"/>
