@@ -53,16 +53,7 @@
         <Folder
             Name="Source Files"
             Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.c++;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.scala;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl;*.d;*.m;*.mm;*.go;*.groovy;*.gsh"
-            GUID="{11DD4879-3BC6-4128-875A-592E757B84E3}">
-            <F N="Ansible.sh"/>
-            <F N="DevelopmentToolsInstallation.sh"/>
-            <F N="DockerInstallation.sh"/>
-            <F N="InstallLampServer.sh"/>
-            <F N="LaTeXInstallation.sh"/>
-            <F N="LetsEncryptCertificate.sh"/>
-            <F N="RepoSurgeonInstallation.sh"/>
-            <F N="SelfSignedCertificate.sh"/>
-        </Folder>
+            GUID="{11DD4879-3BC6-4128-875A-592E757B84E3}"></Folder>
         <Folder
             Name="Header Files"
             Filters="*.h;*.H;*.hh;*.hpp;*.hxx;*.h++;*.inc;*.sh;*.cpy;*.if"
@@ -78,8 +69,6 @@
         <Folder
             Name="Other Files"
             Filters=""
-            GUID="{7633E07D-519D-4E90-A9C7-334D57DFCC22}">
-            <F N="VirtualBoxGuestTools.txt"/>
-        </Folder>
+            GUID="{7633E07D-519D-4E90-A9C7-334D57DFCC22}"></Folder>
     </Files>
 </Project>
