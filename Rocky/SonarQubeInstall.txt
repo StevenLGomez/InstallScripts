@@ -1,0 +1,4 @@
+
+https://blog.cobrasoft.org/how-to-install-sonarqube-on-rocky-linux-9/
+
+
