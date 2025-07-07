@@ -301,6 +301,10 @@
 #
 # URL & Application definitions
 
+# 20250707 - Modifying to:
+#            NOT install WordPress
+#            Minor updates to PHP installation 
+
 # Download (wget) the latest version directly from the wordpress.org
 WORDPRESS_PKG=latest.tar.gz
 WORDPRESS_URL=https://wordpress.org/${WORDPRESS_PKG}
@@ -312,7 +316,7 @@ PHP_MYADMIN_URL=https://files.phpmyadmin.net/phpMyAdmin/${PHP_MYADMIN_VER}/phpMy
 #
 function PerformUpdate
 {
-    dnf -y update
+    sudo dnf -y update
 }
 # ------------------------------------------------------------------------
 
@@ -322,7 +326,11 @@ function InstallBasicPackages
 {
     echo "Function: InstallBasicPackages starting"
 
-    dnf install -y git wget unzip curl
+    sudo dnf install -y git wget zip unzip curl
+
+    # Install Fedora EPEL to allow Remi's PHP packages
+    sudo dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -y
+    rpm -q epel-release
 
     echo "Function: InstallBasicPackages complete"
 }
@@ -335,9 +343,9 @@ function InstallApache
     echo "Function: InstallApache starting"
 
     # The following are required to support SSL
-    dnf install -y mod_ssl openssl
+    sudo dnf install -y mod_ssl openssl
 
-    dnf -y install -y httpd
+    sudo dnf -y install -y httpd
 
     # systemctl start httpd
     systemctl enable --now httpd
@@ -356,7 +364,7 @@ function InstallDataBase
 {
     echo "Function: InstallDataBase starting"
 
-    dnf install -y mariadb-server mariadb
+    sudo dnf install -y mariadb-server mariadb
 
     # The following displays version information for MariaDB
     rpm -qi mariadb-server
@@ -392,7 +400,7 @@ function InstallPhp
         php-memcached php-redis php-mbstring php-apcu php-xml php-dom php-redis \
         php-memcached php-memcache php-pear
 
-    sudo dnf -y install php php-{cgi,gettext,imap,pdo,mysqli,odbc}
+    sudo dnf -y install php-{cgi,gettext,imap,pdo,mysqli,odbc}
 
     # Install development & debugging tools
     sudo dnf -y install php-devel php-xdebug php-pcov
@@ -435,7 +443,7 @@ function InstallPhpMyAdmin
     # is required to install semanage (for SELinux configuration).
     # It tells you that you will need policycoreutils-python-utils
     yum whatprovides semanage
-    dnf install -y policycoreutils-python-utils
+    sudo dnf install -y policycoreutils-python-utils
 
     yum -y install php-mysqlnd
 
@@ -571,8 +579,8 @@ function InstallApacheCertificates
 
     # From: https://docs.rockylinux.org/guides/security/generating_ssl_keys_lets_encrypt/
 
-    dnf -y install epel-release
-    dnf -y install certbot python3-certbot-apache
+    sudo dnf -y install epel-release
+    sudo dnf -y install certbot python3-certbot-apache
 
     # The following step requires user interaction to enter domain information
     certbot certonly --apache
@@ -660,7 +668,7 @@ then
 
     InstallPhpMyAdmin
 
-    InstallWordPress
+    # InstallWordPress
 fi
 
 #  Install the certificates
