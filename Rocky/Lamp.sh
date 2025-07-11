@@ -111,190 +111,6 @@
 #
 
 
-
-### For configuring VirtualHosts #########################################
-# After all basic sites have been created (or at least stubs in directories)
-#
-# Method 1 ---------------------------------------------------------------
-#
-# Create some stub directories for experimentation
-#    cd /var/www/html
-#    sudo mkdir site1
-#    sudo mkdir site2
-#    sudo chown apache:apache -R site1
-#    sudo chown apache:apache -R site2
-#
-# Create sites-available & sites-enabled directories
-#    cd /etc/httpd
-#    sudo mkdir sites-available
-#    sudo mkdir sites-enabled
-#
-#    sudo vi /etc/httpd/conf/httpd.conf <== At end of this file, add:
-#    IncludeOptional sites-enabled/*.conf
-#
-#    cd sites-available
-#    sudo vi site1.com.conf
-#
-#    <VirtualHost *:80>
-#
-#        ServerName www.site1.com
-#        ServerAlias site1.com
-#        DocumentRoot /var/www/html/site1/
-#        ErrorLog /var/www/html/site1/error.log
-#        CustomLog /var/www/html/site1/requests.log combined
-#    </VirtualHost>
-#
-#    sudo cp site1.com.conf site2.com.conf
-#    sudo vi site2.com.conf (then change 1s to 2s)
-#
-#    <VirtualHost *:80>
-#
-#        ServerName www.site2.com
-#        ServerAlias site2.com
-#        DocumentRoot /var/www/html/site2/
-#        ErrorLog /var/www/html/site2/error.log
-#        CustomLog /var/www/html/site2/requests.log combined
-#    </VirtualHost>
-#
-# Create symbolic links from sites-available into sites-enabled
-#
-#    sudo ln -s /etc/httpd/sites-available/site1.com.conf /etc/httpd/sites-enabled/site1.com.conf
-#    sudo ln -s /etc/httpd/sites-available/site2.com.conf /etc/httpd/sites-enabled/site2.com.conf
-#
-# Restart Apache
-#    sudo service httpd restart
-#    sudo setenforce 0 
-#
-# Method 2 ---------------------------------------------------------------
-#    mkdir --parents /var/www/test.tutorialinux.com/public_html
-#    Add /var/www/test.tutorialinux.com/public_html/index.html 
-#
-#    vi /etc/httpd/conf/httpd.conf (At very end of file, after IncludeOptional)
-#
-#    #Custom VirtualHosts
-#    <VirtualHost *:80>
-#        ServerAdmin webmaster@tutorialinux.com
-#        DocumentRoot /var/www/test.tutorialinux.com/public_html
-#        ServerName test.tutorialinux.com
-#        ServerAlias tutorialinux.com
-#        ErrorLog /var/www/test.tutorialinux.com/error.log
-#    </VirtualHost>
-#
-
-# My config (currently broken, Unable to connect ...)
-# Custom VirtualHost Definitions
-#
-#    <VirtualHost *:80>
-#        ServerAdmin steve_gomez@usa.net
-#        DocumentRoot /var/www/steven-gomez.com/public_html
-#        ServerName steven-gomez.com
-#        ServerAlias steven-gomez.com
-#        ErrorLog /var/www/steven-gomez.com/error.log
-#    </VirtualHost>
-#    apachectl graceful
-#
-# Show DNS using /etc/hosts
-#
-# Add:
-#    162.243.199.43 test.tutorialinux.com
-#
-# Method 2 ---------------------------------------------------------------
-#
-# From: https://docs.rockylinux.org/guides/web/apache-sites-enabled/
-#
-#    sudo mkdir --parents /etc/httpd/sites-available /etc/httpd/sites-enabled
-#    sudo mkdir --parents /var/www/sub-domains 
-#
-#    sudo vi /etc/httpd/conf/httpd.conf (add at very end of file:)
-#    Include /etc/httpd/sites-enabled
-#
-#    Our actual configuration files will be in /etc/httpd/sites-available and 
-#    you will symlink to them in /etc/httpd/sites-enabled.
-#
-#    This method prevents changes to a single site's configuration from 
-#    crashing ALL Apache configurations during a config reload.
-#
-#    This also allows fully specifying everything outside the default httpd.conf,
-#    and makes troubleshooting a broken site's configuration less complex.
-#
-#
-#    sudo vi /etc/httpd/sites-available/steven-gomez.com
-#
-#    <VirtualHost *:80>
-#            ServerName steven-gomez.com
-#            ServerAdmin username@rockylinux.org
-#            DocumentRoot /var/www/sub-domains/steven-gomez.com/html
-#            DirectoryIndex index.php index.htm index.html
-#            Alias /icons/ /var/www/icons/
-#            # ScriptAlias /cgi-bin/ /var/www/sub-domains/steven-gomez.com/cgi-bin/
-#    
-#        CustomLog "/var/log/httpd/steven-gomez.com-access_log" combined
-#        ErrorLog  "/var/log/httpd/steven-gomez.com-error_log"
-#    
-#            <Directory /var/www/sub-domains/steven-gomez.com/html>
-#                    Options -ExecCGI -Indexes
-#                    AllowOverride None
-#    
-#                    Order deny,allow
-#                    Deny from all
-#                    Allow from all
-#    
-#                    Satisfy all
-#            </Directory>
-#    </VirtualHost>
-#
-#    OR - better yet, include the HTTPS directives needed to support let's encrypt keys.
-#
-#    <VirtualHost *:80>
-#            ServerName steven-gomez.com
-#            ServerAdmin steve_gomez@usa.net
-#            Redirect / https://steven-gomez.com/
-#    </VirtualHost>
-#    <Virtual Host *:443>
-#            ServerName steven-gomez.com
-#            ServerAdmin steve_gomez@usa.net
-#            DocumentRoot /var/www/sub-domains/steven-gomez.com/html
-#            DirectoryIndex index.php index.htm index.html
-#            # Alias /icons/ /var/www/icons/
-#            # ScriptAlias /cgi-bin/ /var/www/sub-domains/steven-gomez.com/cgi-bin/
-#    
-#        CustomLog "/var/log/`http`d/steven-gomez.com-access_log" combined
-#        ErrorLog  "/var/log/`http`d/steven-gomez.com-error_log"
-#    
-#            SSLEngine on
-#            SSLProtocol all -SSLv2 -SSLv3 -TLSv1
-#            SSLHonorCipherOrder on
-#            SSLCipherSuite EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384
-#    :EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS
-#    
-#            SSLCertificateFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.crt/com.wiki.www.crt
-#            SSLCertificateKeyFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.key/com.wiki.www.key
-#            SSLCertificateChainFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.crt/your_providers_intermediate_certificate.crt
-#    
-#            <Directory /var/www/sub-domains/steven-gomez.com/html>
-#                    Options -ExecCGI -Indexes
-#                    AllowOverride None
-#    
-#                    Order deny,allow
-#                    Deny from all
-#                    Allow from all
-#    
-#                    Satisfy all
-#            </Directory>
-#    </VirtualHost>
-#    
-#
-#
-#
-#    sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/html
-#    Then create the HTML in the directory created above.
-#
-#
-#
-#
-
-
-
 ##########################################################################
 ##########################################################################
 ##########################################################################
@@ -328,10 +144,6 @@ function InstallBasicPackages
 
     sudo dnf install -y git wget zip unzip curl
 
-    # Install Fedora EPEL to allow Remi's PHP packages
-    sudo dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -y
-    rpm -q epel-release
-
     echo "Function: InstallBasicPackages complete"
 }
 
@@ -342,16 +154,14 @@ function InstallApache
 {
     echo "Function: InstallApache starting"
 
-    # The following are required to support SSL
-    sudo dnf install -y mod_ssl openssl
-
-    sudo dnf -y install -y httpd
+    # Install apache & SSL support 
+    sudo dnf install -y httpd mod_ssl openssl
 
     # systemctl start httpd
-    systemctl enable --now httpd
+    sudo systemctl enable --now httpd
 
     # The following shows the status of httpd.service
-    systemctl is-enabled httpd
+    sudo systemctl is-enabled httpd
 
     echo "Function: InstallApache complete"
 }
@@ -377,21 +187,25 @@ function InstallDataBase
 
 ##########################################################################
 # Install PHP
-# From: https://linuxcapable.com/how-to-install-php-on-rocky-linux/
+# From: (DEPRECATED) https://linuxcapable.com/how-to-install-php-on-rocky-linux/
 #
 function InstallPhp
 {
     echo "Function: InstallPhp starting"
 
+    # https://docs.rockylinux.org/guides/web/apache-sites-enabled/
+    # Per Rocky docs noted above, it is no longer necessary to pull from Fedora.
+    # You can just install php. 
+
     # Enable CRB to provide access to more development tools
-    sudo dnf config-manager --set-enabled crb
+    # sudo dnf config-manager --set-enabled crb
 
     # Install EPEL repositories
-    sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
-        https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
+    # sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
+    #     https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
 
-    sudo dnf install -y dnf-utils http://rpms.remirepo.net/enterprise/remi-release-9.rpm
-    sudo dnf module enable php:remi-8.4 -y
+    # sudo dnf install -y dnf-utils http://rpms.remirepo.net/enterprise/remi-release-9.rpm
+    # sudo dnf module enable php:remi-8.4 -y
 
     # Apache (httpd) PHP Installation, and extra packages
     sudo dnf install -y php 
@@ -573,6 +387,31 @@ function CreateDefaultIndexHtml
 
 
 ##########################################################################
+# From: https://docs.rockylinux.org/guides/web/apache-sites-enabled/
+#
+function ConfigureMultiSite
+{
+    echo "Function: ConfigureMultiSite starting"
+
+    sudo mkdir -p /etc/httpd/sites-available /etc/httpd/sites-enabled
+    sudo mkdir /var/www/sub-domains/
+
+    # The actual configuration files will be in /etc/httpd/sites-available but 
+    # you will symlink to them in /etc/httpd/sites-enabled.
+    # This allows a broken site to be unlinked for repair without taking down
+    # the rest.
+
+    # Update Apache configuration
+    echo '' >> /etc/httpd/conf/httpd.conf
+    echo 'Include /etc/httpd/sites-enabled' >> /etc/httpd/conf/httpd.conf
+    echo '' >> /etc/httpd/conf/httpd.conf
+
+
+    echo "Function: ConfigureMultiSite complete"
+}
+# ------------------------------------------------------------------------
+
+##########################################################################
 function InstallApacheCertificates
 {
     echo "Function: InstallApacheCertificates starting"
@@ -624,10 +463,11 @@ then
     echo "ERROR: Missing parameter - must specify INSTALL or ADD_CERTS node"
     echo ""
     echo "Supported Options:"
-    echo "    INSTALL      Installs required applications - MUST BE RUN BEFORE ADD_CERTS"
-    echo "    ADD_CERTS    Adds third party cerficates; requires user interaction."
+    echo "    INSTALL        Installs required applications - MUST BE RUN BEFORE ADD_CERTS"
+    echo "    ADD_MULTISITE  Installs required applications - MUST BE RUN BEFORE ADD_CERTS"
+    echo "    ADD_CERTS      Adds third party cerficates; requires user interaction."
     echo ""
-    echo "Usage: $0 INSTALL || ADD_CERTS"
+    echo "Usage: $0 INSTALL || ADD_CERTS || ADD_MULTISITE"
     exit
 fi
 
@@ -644,6 +484,12 @@ if [ "$1" = "ADD_CERTS" ]
 then
     echo "ADD_CERTS - Adding third party certificates"
     ACTION_TYPE=ADD_CERTS
+fi
+
+if [ "$1" = "ADD_MULTISITE" ]
+then
+    echo "ADD_MULTISITE - Adding multi-site support"
+    ACTION_TYPE=ADD_MULTISITE
 fi
 
 echo "Applying ACTION_TYPE:  ${ACTION_TYPE}"
@@ -669,6 +515,17 @@ then
     InstallPhpMyAdmin
 
     # InstallWordPress
+fi
+
+#  Add Multi Site Support
+if [ $ACTION_TYPE = "ADD_MULTISITE" ]
+then
+    echo "========================================================================================="
+    echo "=================== Adding Multi Site Support ==========================================="
+    echo "========================================================================================="
+
+    ConfigureMultiSite
+
 fi
 
 #  Install the certificates
