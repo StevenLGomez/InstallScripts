@@ -413,6 +413,7 @@ function ConfigureMultiSite
     # Add the subdirectories needed for your supported site and its associated keys
     sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/html
     sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/ssl/{ssl.key,ssl.crt,ssl.csr}
+    sudo chown -R apache:apache /var/www/sub-domains
 
     # Create the multi site configuration file, modify and add <VirtualHost>s as needed:
 cat << EOF > /etc/httpd/sites-available/steven-gomez.com
@@ -425,7 +426,7 @@ cat << EOF > /etc/httpd/sites-available/steven-gomez.com
         ServerName steven-gomez.com
         ServerAdmin steve.gomez.sg79@gmail.com
         DocumentRoot /var/www/sub-domains/steven-gomez.com/html/
-        DirectoryIndex index.php index.html
+        DirectoryIndex index.php index.htm index.html
         Alias /icons/ /var/www/icons/
         # ScriptAlias /cgi-bin/ /var/www/sub-domains/steven-gomez.com/cgi-bin/
 
@@ -436,8 +437,8 @@ cat << EOF > /etc/httpd/sites-available/steven-gomez.com
         SSLProtocol all -SSLv2 -SSLv3 -TLSv1
         SSLHonorCipherOrder on
 
-        SSLCertificateFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.crt/steven-gomez.com.crt
-        SSLCertificateKeyFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.key/steven-gomez.com.key
+        SSLCertificateFile /etc/letsencrypt/live/steven-gomez.com/fullchain.pem
+        SSLCertificateKeyFile /etc/letsencrypt/live/steven-gomez.com/privkey.pem
 
         <Directory /var/www/sub-domains/steven-gomez.com/html>
                 Options -ExecCGI -Indexes
@@ -472,6 +473,9 @@ EOF
     # Create dummy php test page in this sub-domain
     echo "<?php phpinfo(); ?>" > /var/www/sub-domains/steven-gomez.com/html/info.php
     chown apache:apache /var/www/sub-domains/steven-gomez.com/html/info.php
+
+    # This line makes this site live by making it visible in sites-enabled
+    ln -s /etc/httpd/sites-available/steven-gomez.com /etc/httpd/sites-enabled/
 
     echo "Function: ConfigureMultiSite complete"
 }
