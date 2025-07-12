@@ -144,6 +144,11 @@ function InstallBasicPackages
 
     sudo dnf install -y git wget zip unzip curl
 
+    # From: https://docs.rockylinux.org/guides/security/generating_ssl_keys_lets_encrypt/
+    # Install letsencrypt certbot
+    sudo dnf -y install epel-release
+    sudo dnf -y install certbot python3-certbot-apache
+
     echo "Function: InstallBasicPackages complete"
 }
 
@@ -393,19 +398,80 @@ function ConfigureMultiSite
 {
     echo "Function: ConfigureMultiSite starting"
 
-    sudo mkdir -p /etc/httpd/sites-available /etc/httpd/sites-enabled
-    sudo mkdir /var/www/sub-domains/
-
     # The actual configuration files will be in /etc/httpd/sites-available but 
     # you will symlink to them in /etc/httpd/sites-enabled.
     # This allows a broken site to be unlinked for repair without taking down
     # the rest.
+    sudo mkdir --parents /etc/httpd/sites-available /etc/httpd/sites-enabled
+    sudo mkdir /var/www/sub-domains/
 
-    # Update Apache configuration
-    echo '' >> /etc/httpd/conf/httpd.conf
-    echo 'Include /etc/httpd/sites-enabled' >> /etc/httpd/conf/httpd.conf
-    echo '' >> /etc/httpd/conf/httpd.conf
+    # Update Apache configuration, Include the sites-enabled path
+    sudo echo '' >> /etc/httpd/conf/httpd.conf
+    sudo echo 'Include /etc/httpd/sites-enabled' >> /etc/httpd/conf/httpd.conf
+    sudo echo '' >> /etc/httpd/conf/httpd.conf
 
+    # Add the subdirectories needed for your supported site and its associated keys
+    sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/html
+    sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/ssl/{ssl.key,ssl.crt,ssl.csr}
+
+    # Create the multi site configuration file, modify and add <VirtualHost>s as needed:
+cat << EOF > /etc/httpd/sites-available/steven-gomez.com
+<VirtualHost *:80>
+        ServerName steven-gomez.com
+        ServerAdmin steve.gomez.sg79@gmail.com
+        Redirect / https://steven-gomez.com/
+</VirtualHost>
+<VirtualHost *:443>
+        ServerName steven-gomez.com
+        ServerAdmin steve.gomez.sg79@gmail.com
+        DocumentRoot /var/www/sub-domains/steven-gomez.com/html/
+        DirectoryIndex index.php index.html
+        Alias /icons/ /var/www/icons/
+        # ScriptAlias /cgi-bin/ /var/www/sub-domains/steven-gomez.com/cgi-bin/
+
+        CustomLog "/var/log/httpd/steven-gomez.com-access_log" combined
+        ErrorLog  "/var/log/httpd/steven-gomez.com-error_log"
+
+        SSLEngine on
+        SSLProtocol all -SSLv2 -SSLv3 -TLSv1
+        SSLHonorCipherOrder on
+
+        SSLCertificateFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.crt/steven-gomez.com.crt
+        SSLCertificateKeyFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.key/steven-gomez.com.key
+
+        <Directory /var/www/sub-domains/steven-gomez.com/html>
+                Options -ExecCGI -Indexes
+                AllowOverride None
+
+                Order deny,allow
+                Deny from all
+                Allow from all
+
+                Satisfy all
+        </Directory>
+</VirtualHost>
+EOF
+
+    # Make a test landing page
+cat << EOF > /var/www/sub-domains/steven-gomez.com/html/index.html
+<html>
+  <head>
+    <title>Apache Server Test Page</title>
+  </head>
+
+  <body>
+    <h1>Web site on Rocky Linux 9</h1>
+	steven-gomez.com
+  </body>
+
+</html>
+EOF
+    # Change ownership of the file just created
+    chown apache:apache /var/www/sub-domains/steven-gomez.com/html/index.html
+
+    # Create dummy php test page in this sub-domain
+    echo "<?php phpinfo(); ?>" > /var/www/sub-domains/steven-gomez.com/html/info.php
+    chown apache:apache /var/www/sub-domains/steven-gomez.com/html/info.php
 
     echo "Function: ConfigureMultiSite complete"
 }
@@ -417,9 +483,6 @@ function InstallApacheCertificates
     echo "Function: InstallApacheCertificates starting"
 
     # From: https://docs.rockylinux.org/guides/security/generating_ssl_keys_lets_encrypt/
-
-    sudo dnf -y install epel-release
-    sudo dnf -y install certbot python3-certbot-apache
 
     # The following step requires user interaction to enter domain information
     certbot certonly --apache
@@ -463,8 +526,8 @@ then
     echo "ERROR: Missing parameter - must specify INSTALL or ADD_CERTS node"
     echo ""
     echo "Supported Options:"
-    echo "    INSTALL        Installs required applications - MUST BE RUN BEFORE ADD_CERTS"
-    echo "    ADD_MULTISITE  Installs required applications - MUST BE RUN BEFORE ADD_CERTS"
+    echo "    INSTALL        Installs required applications - MUST BE RUN FIRST"
+    echo "    ADD_MULTISITE  Configures support for multiple web sites - RUN SECOND"
     echo "    ADD_CERTS      Adds third party cerficates; requires user interaction."
     echo ""
     echo "Usage: $0 INSTALL || ADD_CERTS || ADD_MULTISITE"
