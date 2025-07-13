@@ -410,6 +410,10 @@ function ConfigureMultiSite
     sudo echo 'Include /etc/httpd/sites-enabled' >> /etc/httpd/conf/httpd.conf
     sudo echo '' >> /etc/httpd/conf/httpd.conf
 
+    # NOTE: also manually added (to /etc/httpd/conf/httpd.conf), but NOT commented.
+    # ServerName steven-gomez.com:80
+    # ServerName gomez.engineering:80
+
     # Add the subdirectories needed for your supported site and its associated keys
     sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/html
     sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/ssl/{ssl.key,ssl.crt,ssl.csr}
