@@ -494,6 +494,12 @@ function InstallApacheCertificates
     # The following tests automatic renewal
     certbot renew --dry-run
 
+    # From: https://eff-certbot.readthedocs.io/en/stable/using.html#apache
+    #       Since httpd does NOT run as root, the following is needed:
+    chmod 0755 /etc/letsencrypt/{live,archive}
+    chgrp apache /etc/letsencrypt/live/steven-gomez.com/*.pem
+    chmod 0640 /etc/letsencrypt/live/steven-gomez.com/*.pem
+
     echo "Function: InstallApacheCertificates complete"
 }
 # ------------------------------------------------------------------------
@@ -532,7 +538,7 @@ then
     echo "Supported Options:"
     echo "    INSTALL        Installs required applications - MUST BE RUN FIRST"
     echo "    ADD_MULTISITE  Configures support for multiple web sites - RUN SECOND"
-    echo "    ADD_CERTS      Adds third party cerficates; requires user interaction."
+    echo "    ADD_CERTS      Adds third party cerficates; MUST RUN AS ROOT."
     echo ""
     echo "Usage: $0 INSTALL || ADD_CERTS || ADD_MULTISITE"
     exit
