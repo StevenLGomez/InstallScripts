@@ -424,37 +424,37 @@ cat << EOF > /etc/httpd/sites-available/steven-gomez.com
 <VirtualHost *:80>
         ServerName steven-gomez.com
         ServerAdmin steve.gomez.sg79@gmail.com
-        Redirect / https://steven-gomez.com/
+#        Redirect / https://steven-gomez.com/
 </VirtualHost>
 <VirtualHost *:443>
-        ServerName steven-gomez.com
-        ServerAdmin steve.gomez.sg79@gmail.com
-        DocumentRoot /var/www/sub-domains/steven-gomez.com/html/
-        DirectoryIndex index.php index.htm index.html
-        Alias /icons/ /var/www/icons/
-        # ScriptAlias /cgi-bin/ /var/www/sub-domains/steven-gomez.com/cgi-bin/
-
-        CustomLog "/var/log/httpd/steven-gomez.com-access_log" combined
-        ErrorLog  "/var/log/httpd/steven-gomez.com-error_log"
-
-        SSLEngine on
-        SSLProtocol all -SSLv2 -SSLv3 -TLSv1
-        SSLHonorCipherOrder on
-
-        SSLCertificateFile /etc/letsencrypt/live/steven-gomez.com/fullchain.pem
-        SSLCertificateKeyFile /etc/letsencrypt/live/steven-gomez.com/privkey.pem
-
-        <Directory /var/www/sub-domains/steven-gomez.com/html>
-                Options -ExecCGI -Indexes
-                AllowOverride None
-
-                Order deny,allow
-                Deny from all
-                Allow from all
-
-                Satisfy all
-        </Directory>
-</VirtualHost>
+#        ServerName steven-gomez.com
+#        ServerAdmin steve.gomez.sg79@gmail.com
+#        DocumentRoot /var/www/sub-domains/steven-gomez.com/html/
+#        DirectoryIndex index.php index.htm index.html
+#        Alias /icons/ /var/www/icons/
+#        # ScriptAlias /cgi-bin/ /var/www/sub-domains/steven-gomez.com/cgi-bin/
+#
+#        CustomLog "/var/log/httpd/steven-gomez.com-access_log" combined
+#        ErrorLog  "/var/log/httpd/steven-gomez.com-error_log"
+#
+#        SSLEngine on
+#        SSLProtocol all -SSLv2 -SSLv3 -TLSv1
+#        SSLHonorCipherOrder on
+#
+#        SSLCertificateFile /etc/letsencrypt/live/steven-gomez.com/fullchain.pem
+#        SSLCertificateKeyFile /etc/letsencrypt/live/steven-gomez.com/privkey.pem
+#
+#        <Directory /var/www/sub-domains/steven-gomez.com/html>
+#                Options -ExecCGI -Indexes
+#                AllowOverride None
+#
+#                Order deny,allow
+#                Deny from all
+#                Allow from all
+#
+#                Satisfy all
+#        </Directory>
+#</VirtualHost>
 EOF
 
     # Make a test landing page
@@ -583,13 +583,13 @@ then
 
     InstallApache
     ConfigureFirewall
-    CreateDefaultIndexHtml
+    # CreateDefaultIndexHtml
     # Web Service (Apache httpd) should now be running
 
-    InstallDataBase
-    InstallPhp
+    # InstallDataBase
+    # InstallPhp
 
-    InstallPhpMyAdmin
+    # InstallPhpMyAdmin
 
     # InstallWordPress
 fi
