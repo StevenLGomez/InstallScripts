@@ -426,7 +426,7 @@ cat << EOF > /etc/httpd/sites-available/steven-gomez.com
         ServerAdmin steve.gomez.sg79@gmail.com
 #        Redirect / https://steven-gomez.com/
 </VirtualHost>
-<VirtualHost *:443>
+#<VirtualHost *:443>
 #        ServerName steven-gomez.com
 #        ServerAdmin steve.gomez.sg79@gmail.com
 #        DocumentRoot /var/www/sub-domains/steven-gomez.com/html/
