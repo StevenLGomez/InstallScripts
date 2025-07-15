@@ -356,10 +356,12 @@ function ConfigureFirewall
     echo "Function: ConfigureFirewall starting"
 
     # Open firewall for http (consider removing this one after https/ssl is configured)
-    firewall-cmd --permanent --zone=public --add-service=http
+    # firewall-cmd --permanent --zone=public --add-service=http
+    firewall-cmd --permanent --add-port=80/tcp
 
     # Open firewall for https
-    firewall-cmd --permanent --zone=public --add-service=https
+    firewall-cmd --permanent --add-port=443/tcp
+    # firewall-cmd --permanent --zone=public --add-service=https
 
     firewall-cmd --reload
 
@@ -411,7 +413,12 @@ function ConfigureMultiSiteDirectories
     sudo echo '' >> /etc/httpd/conf/httpd.conf
     sudo echo 'Include /etc/httpd/sites-enabled' >> /etc/httpd/conf/httpd.conf
     sudo echo '' >> /etc/httpd/conf/httpd.conf
+    sudo echo 'ServerName steven-gomez.com:80' >> /etc/httpd/conf/httpd.conf
+    sudo echo 'ServerName gomez.engineering:80' >> /etc/httpd/conf/httpd.conf
+    sudo echo '' >> /etc/httpd/conf/httpd.conf
 
+
+    # NOTE NOTE - could not sudo add the following 
     # NOTE: also manually added (to /etc/httpd/conf/httpd.conf), but NOT commented.
     # ServerName steven-gomez.com:80
     # ServerName gomez.engineering:80
@@ -421,7 +428,7 @@ function ConfigureMultiSiteDirectories
 # ------------------------------------------------------------------------
 
 ##########################################################################
-function ConfigureSite-A
+function ConfigureSiteA
 {
     # Add the subdirectories needed for your supported site and its associated keys
     sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/html
@@ -453,8 +460,11 @@ cat << EOF > /etc/httpd/sites-available/steven-gomez.com
 #        SSLProtocol all -SSLv2 -SSLv3 -TLSv1
 #        SSLHonorCipherOrder on
 #
-#        SSLCertificateFile /etc/letsencrypt/live/steven-gomez.com/fullchain.pem
-#        SSLCertificateKeyFile /etc/letsencrypt/live/steven-gomez.com/privkey.pem
+#        #SSLCertificateKeyFile /etc/letsencrypt/live/steven-gomez.com/privkey1.pem
+#        #SSLCertificateFile /etc/letsencrypt/live/steven-gomez.com/fullchain1.pem
+#
+#        SSLCertificateKeyFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.key/privkey1.pem
+#        SSLCertificateFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.crt/fullchain1.pem
 #
 #        <Directory /var/www/sub-domains/steven-gomez.com/html>
 #                Options -ExecCGI -Indexes
@@ -480,7 +490,7 @@ cat << EOF > /var/www/sub-domains/steven-gomez.com/html/index.html
     <h1>Web site on Rocky Linux 9</h1>
 	steven-gomez.com
         <hr />
-        echo "<?php phpinfo(); ?>" 
+        <?php phpinfo(); ?> 
   </body>
 
 </html>
@@ -499,7 +509,7 @@ EOF
 # ------------------------------------------------------------------------
 
 ##########################################################################
-function ConfigureSite-B  
+function ConfigureSiteB  
 {
     # Add the subdirectories needed for your supported site and its associated keys
     sudo mkdir --parents /var/www/sub-domains/gomez.engineering/html
@@ -531,8 +541,14 @@ cat << EOF > /etc/httpd/sites-available/gomez.engineering
 #        SSLProtocol all -SSLv2 -SSLv3 -TLSv1
 #        SSLHonorCipherOrder on
 #
-#        SSLCertificateFile /etc/letsencrypt/live/gomez.engineering/fullchain.pem
-#        SSLCertificateKeyFile /etc/letsencrypt/live/gomez.engineering/privkey.pem
+#        #sudo cp /etc/letsencrypt/archive/gomez.engineering/privkey1.pem ssl.key/
+#        #sudo cp /etc/letsencrypt/archive/gomez.engineering/fullchain1.pem ssl.crt/ 
+#
+#        #SSLCertificateKeyFile /etc/letsencrypt/live/gomez.engineering/privkey1.pem
+#        #SSLCertificateFile /etc/letsencrypt/live/gomez.engineering/fullchain1.pem
+#
+#        SSLCertificateKeyFile /var/www/sub-domains/gomez.engineering/ssl/ssl.key/privkey1.pem
+#        SSLCertificateFile /var/www/sub-domains/gomez.engineering/ssl/ssl.crt/fullchain1.pem
 #
 #        <Directory /var/www/sub-domains/gomez.engineering/html>
 #                Options -ExecCGI -Indexes
@@ -558,7 +574,7 @@ cat << EOF > /var/www/sub-domains/gomez.engineering/html/index.html
     <h1>Web site on Rocky Linux 9</h1>
 	gomez.engineering
         <hr />
-        echo "<?php phpinfo(); ?>" 
+        <?php phpinfo(); ?> 
   </body>
 
 </html>
@@ -700,8 +716,8 @@ then
     echo "========================================================================================="
 
     ConfigureMultiSiteDirectories
-    ConfigureSite-A
-    ConfigureSite-B  
+    ConfigureSiteA
+    ConfigureSiteB  
 
 fi
 
