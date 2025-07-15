@@ -144,6 +144,14 @@ function InstallBasicPackages
 
     sudo dnf install -y git wget zip unzip curl
 
+    # phpMyAdmin (and certbot) needs to modify SELinux settings
+    # The following line is not specifically required, but will show you what package
+    # is required to install semanage (for SELinux configuration).
+    # It tells you that you will need policycoreutils-python-utils
+    yum whatprovides semanage
+    sudo dnf install -y policycoreutils-python-utils
+    sudo dnf -y install setroubleshoot-server
+
     # From: https://docs.rockylinux.org/guides/security/generating_ssl_keys_lets_encrypt/
     # Install letsencrypt certbot
     sudo dnf -y install epel-release
@@ -237,9 +245,9 @@ function InstallPhp
     # Show active PHP modules
     php --modules
 
-    # Create dummy php test page
-    echo "<?php phpinfo(); ?>" > /var/www/html/info.php
-    chown apache:apache /var/www/html/info.php
+    # DEPRECATE - Create dummy php test page
+    # echo "<?php phpinfo(); ?>" > /var/www/html/info.php
+    # chown apache:apache /var/www/html/info.php
 
     echo "Function: InstallPhp complete"
 }
@@ -256,13 +264,6 @@ function InstallPhp
 function InstallPhpMyAdmin
 {
     echo "Function: InstallPhpMyAdmin starting"
-
-    # phpMyAdmin needs to modify SELinux settings
-    # The following line is not specifically required, but will show you what package
-    # is required to install semanage (for SELinux configuration).
-    # It tells you that you will need policycoreutils-python-utils
-    yum whatprovides semanage
-    sudo dnf install -y policycoreutils-python-utils
 
     yum -y install php-mysqlnd
 
@@ -367,6 +368,7 @@ function ConfigureFirewall
 # ------------------------------------------------------------------------
 
 ##########################################################################
+# DEPRECATE - Use default landing page provided by OS
 function CreateDefaultIndexHtml
 {
     echo "Function: CreateDefaultLandingPage starting"
@@ -394,9 +396,9 @@ function CreateDefaultIndexHtml
 ##########################################################################
 # From: https://docs.rockylinux.org/guides/web/apache-sites-enabled/
 #
-function ConfigureMultiSite
+function ConfigureMultiSiteDirectories
 {
-    echo "Function: ConfigureMultiSite starting"
+    echo "Function: ConfigureMultiSiteDirectories starting"
 
     # The actual configuration files will be in /etc/httpd/sites-available but 
     # you will symlink to them in /etc/httpd/sites-enabled.
@@ -414,6 +416,13 @@ function ConfigureMultiSite
     # ServerName steven-gomez.com:80
     # ServerName gomez.engineering:80
 
+    echo "Function: ConfigureMultiSiteDirectories complete"
+}
+# ------------------------------------------------------------------------
+
+##########################################################################
+function ConfigureSite-A
+{
     # Add the subdirectories needed for your supported site and its associated keys
     sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/html
     sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/ssl/{ssl.key,ssl.crt,ssl.csr}
@@ -424,6 +433,9 @@ cat << EOF > /etc/httpd/sites-available/steven-gomez.com
 <VirtualHost *:80>
         ServerName steven-gomez.com
         ServerAdmin steve.gomez.sg79@gmail.com
+        DocumentRoot /var/www/sub-domains/steven-gomez.com/html/
+        CustomLog "/var/log/httpd/steven-gomez.com-access_log" combined
+        ErrorLog  "/var/log/httpd/steven-gomez.com-error_log"
 #        Redirect / https://steven-gomez.com/
 </VirtualHost>
 #<VirtualHost *:443>
@@ -434,8 +446,8 @@ cat << EOF > /etc/httpd/sites-available/steven-gomez.com
 #        Alias /icons/ /var/www/icons/
 #        # ScriptAlias /cgi-bin/ /var/www/sub-domains/steven-gomez.com/cgi-bin/
 #
-#        CustomLog "/var/log/httpd/steven-gomez.com-access_log" combined
-#        ErrorLog  "/var/log/httpd/steven-gomez.com-error_log"
+#        CustomLog /var/log/httpd/steven-gomez.com-access_log combined
+#        ErrorLog  /var/log/httpd/steven-gomez.com-error_log
 #
 #        SSLEngine on
 #        SSLProtocol all -SSLv2 -SSLv3 -TLSv1
@@ -475,13 +487,88 @@ EOF
     chown apache:apache /var/www/sub-domains/steven-gomez.com/html/index.html
 
     # Create dummy php test page in this sub-domain
-    echo "<?php phpinfo(); ?>" > /var/www/sub-domains/steven-gomez.com/html/info.php
-    chown apache:apache /var/www/sub-domains/steven-gomez.com/html/info.php
+    # echo "<?php phpinfo(); ?>" > /var/www/sub-domains/steven-gomez.com/html/info.php
+    # chown apache:apache /var/www/sub-domains/steven-gomez.com/html/info.php
 
     # This line makes this site live by making it visible in sites-enabled
     ln -s /etc/httpd/sites-available/steven-gomez.com /etc/httpd/sites-enabled/
 
-    echo "Function: ConfigureMultiSite complete"
+
+}
+# ------------------------------------------------------------------------
+
+##########################################################################
+function ConfigureSite-B  
+{
+    # Add the subdirectories needed for your supported site and its associated keys
+    sudo mkdir --parents /var/www/sub-domains/gomez.engineering/html
+    sudo mkdir --parents /var/www/sub-domains/gomez.engineering/ssl/{ssl.key,ssl.crt,ssl.csr}
+    sudo chown -R apache:apache /var/www/sub-domains
+
+    # Create the multi site configuration file, modify and add <VirtualHost>s as needed:
+cat << EOF > /etc/httpd/sites-available/gomez.engineering
+<VirtualHost *:80>
+        ServerName gomez.engineering
+        ServerAdmin steve.gomez.sg79@gmail.com
+        DocumentRoot /var/www/sub-domains/gomez.engineering/html/
+        CustomLog "/var/log/httpd/gomez.engineering-access_log" combined
+        ErrorLog  "/var/log/httpd/gomez.engineering-error_log"
+#        Redirect / https://gomez.engineering/
+</VirtualHost>
+#<VirtualHost *:443>
+#        ServerName gomez.engineering
+#        ServerAdmin steve.gomez.sg79@gmail.com
+#        DocumentRoot /var/www/sub-domains/gomez.engineering/html/
+#        DirectoryIndex index.php index.htm index.html
+#        Alias /icons/ /var/www/icons/
+#        # ScriptAlias /cgi-bin/ /var/www/sub-domains/gomez.engineering/cgi-bin/
+#
+#        CustomLog /var/log/httpd/gomez.engineering-access_log combined
+#        ErrorLog  /var/log/httpd/gomez.engineering-error_log
+#
+#        SSLEngine on
+#        SSLProtocol all -SSLv2 -SSLv3 -TLSv1
+#        SSLHonorCipherOrder on
+#
+#        SSLCertificateFile /etc/letsencrypt/live/gomez.engineering/fullchain.pem
+#        SSLCertificateKeyFile /etc/letsencrypt/live/gomez.engineering/privkey.pem
+#
+#        <Directory /var/www/sub-domains/gomez.engineering/html>
+#                Options -ExecCGI -Indexes
+#                AllowOverride None
+#
+#                Order deny,allow
+#                Deny from all
+#                Allow from all
+#
+#                Satisfy all
+#        </Directory>
+#</VirtualHost>
+EOF
+
+    # Make a test landing page
+cat << EOF > /var/www/sub-domains/gomez.engineering/html/index.html
+<html>
+  <head>
+    <title>Apache Server Test Page</title>
+  </head>
+
+  <body>
+    <h1>Web site on Rocky Linux 9</h1>
+	gomez.engineering
+  </body>
+
+</html>
+EOF
+    # Change ownership of the file just created
+    chown apache:apache /var/www/sub-domains/gomez.engineering/html/index.html
+
+    # Create dummy php test page in this sub-domain
+    # echo "<?php phpinfo(); ?>" > /var/www/sub-domains/gomez.engineering/html/info.php
+    # chown apache:apache /var/www/sub-domains/gomez.engineering/html/info.php
+
+    # This line makes this site live by making it visible in sites-enabled
+    ln -s /etc/httpd/sites-available/gomez.engineering /etc/httpd/sites-enabled/
 }
 # ------------------------------------------------------------------------
 
@@ -495,14 +582,22 @@ function InstallApacheCertificates
     # The following step requires user interaction to enter domain information
     certbot certonly --apache
 
-    # The following tests automatic renewal
-    certbot renew --dry-run
-
     # From: https://eff-certbot.readthedocs.io/en/stable/using.html#apache
     #       Since httpd does NOT run as root, the following is needed:
-    chmod 0755 /etc/letsencrypt/{live,archive}
-    chgrp apache /etc/letsencrypt/live/steven-gomez.com/*.pem
-    chmod 0640 /etc/letsencrypt/live/steven-gomez.com/*.pem
+    # chmod 0755 /etc/letsencrypt/{live,archive}
+    # chgrp apache /etc/letsencrypt/live/steven-gomez.com/*.pem
+    # chmod 0640 /etc/letsencrypt/live/steven-gomez.com/*.pem
+
+    semanage fcontext -a -t httpd_cert_t "/etc/letsencrypt(/.*)?"
+    restorecon -Rv /etc/letsencrypt
+
+    usermod -a -G certbot apache
+    chmod 750 /etc/letsencrypt/archive /etc/letsencrypt/live
+    chmod 640 /etc/letsencrypt/archive/*/*.pem
+
+
+    # The following tests automatic renewal
+    certbot renew --dry-run
 
     echo "Function: InstallApacheCertificates complete"
 }
@@ -586,8 +681,8 @@ then
     # CreateDefaultIndexHtml
     # Web Service (Apache httpd) should now be running
 
-    # InstallDataBase
-    # InstallPhp
+    InstallDataBase
+    InstallPhp
 
     # InstallPhpMyAdmin
 
@@ -601,7 +696,9 @@ then
     echo "=================== Adding Multi Site Support ==========================================="
     echo "========================================================================================="
 
-    ConfigureMultiSite
+    ConfigureMultiSiteDirectories
+    ConfigureSite-A
+    ConfigureSite-B  
 
 fi
 
