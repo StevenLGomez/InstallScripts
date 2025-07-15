@@ -426,7 +426,7 @@ function ConfigureSite-A
     # Add the subdirectories needed for your supported site and its associated keys
     sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/html
     sudo mkdir --parents /var/www/sub-domains/steven-gomez.com/ssl/{ssl.key,ssl.crt,ssl.csr}
-    sudo chown -R apache:apache /var/www/sub-domains
+    # sudo chown -R apache:apache /var/www/sub-domains
 
     # Create the multi site configuration file, modify and add <VirtualHost>s as needed:
 cat << EOF > /etc/httpd/sites-available/steven-gomez.com
@@ -479,12 +479,14 @@ cat << EOF > /var/www/sub-domains/steven-gomez.com/html/index.html
   <body>
     <h1>Web site on Rocky Linux 9</h1>
 	steven-gomez.com
+        <hr />
+        echo "<?php phpinfo(); ?>" 
   </body>
 
 </html>
 EOF
     # Change ownership of the file just created
-    chown apache:apache /var/www/sub-domains/steven-gomez.com/html/index.html
+    # chown apache:apache /var/www/sub-domains/steven-gomez.com/html/index.html
 
     # Create dummy php test page in this sub-domain
     # echo "<?php phpinfo(); ?>" > /var/www/sub-domains/steven-gomez.com/html/info.php
@@ -492,7 +494,6 @@ EOF
 
     # This line makes this site live by making it visible in sites-enabled
     ln -s /etc/httpd/sites-available/steven-gomez.com /etc/httpd/sites-enabled/
-
 
 }
 # ------------------------------------------------------------------------
@@ -503,7 +504,7 @@ function ConfigureSite-B
     # Add the subdirectories needed for your supported site and its associated keys
     sudo mkdir --parents /var/www/sub-domains/gomez.engineering/html
     sudo mkdir --parents /var/www/sub-domains/gomez.engineering/ssl/{ssl.key,ssl.crt,ssl.csr}
-    sudo chown -R apache:apache /var/www/sub-domains
+    # sudo chown -R apache:apache /var/www/sub-domains
 
     # Create the multi site configuration file, modify and add <VirtualHost>s as needed:
 cat << EOF > /etc/httpd/sites-available/gomez.engineering
@@ -556,12 +557,14 @@ cat << EOF > /var/www/sub-domains/gomez.engineering/html/index.html
   <body>
     <h1>Web site on Rocky Linux 9</h1>
 	gomez.engineering
+        <hr />
+        echo "<?php phpinfo(); ?>" 
   </body>
 
 </html>
 EOF
     # Change ownership of the file just created
-    chown apache:apache /var/www/sub-domains/gomez.engineering/html/index.html
+    # chown apache:apache /var/www/sub-domains/gomez.engineering/html/index.html
 
     # Create dummy php test page in this sub-domain
     # echo "<?php phpinfo(); ?>" > /var/www/sub-domains/gomez.engineering/html/info.php
