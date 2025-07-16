@@ -144,7 +144,7 @@ function InstallBasicPackages
 
     sudo dnf install -y git wget zip unzip curl
 
-    # phpMyAdmin (and certbot) needs to modify SELinux settings
+    # phpMyAdmin (and certbot) need to modify SELinux settings.
     # The following line is not specifically required, but will show you what package
     # is required to install semanage (for SELinux configuration).
     # It tells you that you will need policycoreutils-python-utils
@@ -155,6 +155,10 @@ function InstallBasicPackages
     # From: https://docs.rockylinux.org/guides/security/generating_ssl_keys_lets_encrypt/
     # Install letsencrypt certbot
     sudo dnf -y install epel-release
+
+    # Enable CRB to provide access to more development tools
+    sudo dnf config-manager --set-enabled crb
+
     sudo dnf -y install certbot python3-certbot-apache
 
     echo "Function: InstallBasicPackages complete"
@@ -167,8 +171,8 @@ function InstallApache
 {
     echo "Function: InstallApache starting"
 
-    # Install apache & SSL support 
-    sudo dnf install -y httpd mod_ssl openssl
+    # Install apache & SSL support, NOTE mod_md is REQUIRED for letsenctypt 
+    sudo dnf install -y httpd mod_ssl mod_md openssl nmap
 
     # systemctl start httpd
     sudo systemctl enable --now httpd
@@ -210,9 +214,6 @@ function InstallPhp
     # Per Rocky docs noted above, it is no longer necessary to pull from Fedora.
     # You can just install php. 
 
-    # Enable CRB to provide access to more development tools
-    # sudo dnf config-manager --set-enabled crb
-
     # Install EPEL repositories
     # sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
     #     https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
@@ -246,8 +247,8 @@ function InstallPhp
     php --modules
 
     # DEPRECATE - Create dummy php test page
-    # echo "<?php phpinfo(); ?>" > /var/www/html/info.php
-    # chown apache:apache /var/www/html/info.php
+    echo "<?php phpinfo(); ?>" > /var/www/html/info.php
+    chown apache:apache /var/www/html/info.php
 
     echo "Function: InstallPhp complete"
 }
@@ -397,6 +398,10 @@ function CreateDefaultIndexHtml
 
 ##########################################################################
 # From: https://docs.rockylinux.org/guides/web/apache-sites-enabled/
+# NOTE  Apache uses the first virtual host found in the configuration also for
+#       requests that do not match any domain set in the ServerName and
+#       ServerAlias parameters. This also includes requests sent to the IP
+#       address of the server.
 #
 function ConfigureMultiSiteDirectories
 {
@@ -596,6 +601,8 @@ function InstallApacheCertificates
 {
     echo "Function: InstallApacheCertificates starting"
 
+    exit
+
     # From: https://docs.rockylinux.org/guides/security/generating_ssl_keys_lets_encrypt/
 
     # The following step requires user interaction to enter domain information
@@ -607,13 +614,18 @@ function InstallApacheCertificates
     # chgrp apache /etc/letsencrypt/live/steven-gomez.com/*.pem
     # chmod 0640 /etc/letsencrypt/live/steven-gomez.com/*.pem
 
+    # Need to experiment with which of these semanage commands are best
     semanage fcontext -a -t httpd_cert_t "/etc/letsencrypt(/.*)?"
     restorecon -Rv /etc/letsencrypt
 
-    usermod -a -G certbot apache
-    chmod 750 /etc/letsencrypt/archive /etc/letsencrypt/live
-    chmod 640 /etc/letsencrypt/archive/*/*.pem
+    # The following directories are likely bogus!
+    semanage fcontext -a -t httpd_sys_content_t "/srv/example.com(/.*)?"
+    restorecon -Rv /srv/example.com/
 
+    # These didn't change anything; issues were probably selinux config related
+    #usermod -a -G certbot apache
+    #chmod 750 /etc/letsencrypt/archive /etc/letsencrypt/live
+    #chmod 640 /etc/letsencrypt/archive/*/*.pem
 
     # The following tests automatic renewal
     certbot renew --dry-run
@@ -698,12 +710,13 @@ then
     InstallApache
     ConfigureFirewall
     # CreateDefaultIndexHtml
+
     # Web Service (Apache httpd) should now be running
 
     InstallDataBase
     InstallPhp
 
-    # InstallPhpMyAdmin
+    InstallPhpMyAdmin
 
     # InstallWordPress
 fi
