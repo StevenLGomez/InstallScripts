@@ -366,6 +366,9 @@ function ConfigureFirewall
 
     firewall-cmd --reload
 
+    # Show firewall settings
+    firewall-cmd --list-services --zone=public
+
     echo "Function: ConfigureFirewall complete"
 }
 # ------------------------------------------------------------------------
@@ -465,11 +468,9 @@ cat << EOF > /etc/httpd/sites-available/steven-gomez.com
 #        SSLProtocol all -SSLv2 -SSLv3 -TLSv1
 #        SSLHonorCipherOrder on
 #
-#        #SSLCertificateKeyFile /etc/letsencrypt/live/steven-gomez.com/privkey1.pem
-#        #SSLCertificateFile /etc/letsencrypt/live/steven-gomez.com/fullchain1.pem
-#
-#        SSLCertificateKeyFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.key/privkey1.pem
-#        SSLCertificateFile /var/www/sub-domains/steven-gomez.com/ssl/ssl.crt/fullchain1.pem
+#        SSLCertificateFile /etc/letsencrypt/live/steven-gomez.com/fullchain1.pem
+#        SSLCertificateKeyFile /etc/letsencrypt/live/steven-gomez.com/privkey1.pem
+#        SSLCertificateChainFile /etc/letsencrypt/live/steven-gomez.com/fullchain.pem:w
 #
 #        <Directory /var/www/sub-domains/steven-gomez.com/html>
 #                Options -ExecCGI -Indexes
@@ -621,6 +622,10 @@ function InstallApacheCertificates
     # The following directories are likely bogus!
     semanage fcontext -a -t httpd_sys_content_t "/srv/example.com(/.*)?"
     restorecon -Rv /srv/example.com/
+
+    # From web example (not sure if applies to multi-site): 
+    # https://unix.stackexchange.com/questions/358089/apache-ssl-server-cert-does-not-include-id-which-matches-server-name
+    sudo chcon --recursive system_u:object_r:httpd_sys_content_t:s0 /etc/letsencrypt/
 
     # These didn't change anything; issues were probably selinux config related
     #usermod -a -G certbot apache
