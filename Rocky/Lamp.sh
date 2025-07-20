@@ -14,6 +14,7 @@
 # Configuration notes
 #
 # Run: mysql_secure_installation - MUST run as root, sudo doesn't seem to work
+#      mariadb_secure_installation
 #
 #      * If root password was not previously set, press enter for option to create it
 #      * Set root password               Temporarily use C...S...00
@@ -179,9 +180,9 @@ function InstallPhp
     echo "Function: InstallPhp starting"
 
     # Install Remi repositories
-    sudo dnf install https://rpms.remirepo.net/enterprise/remi-release-10.rpm
-    sudo dnf config-manager --set-enabled remi
-    sudo dnf module enable php:remi-8.4
+    sudo dnf install -y https://rpms.remirepo.net/enterprise/remi-release-10.rpm
+    sudo dnf -y config-manager --set-enabled remi
+    sudo dnf -y module enable php:remi-8.4
 
     # PHP Installation, and extra packages
     sudo dnf install -y php 
