@@ -327,12 +327,12 @@ cat << EOF > /etc/httpd/sites-available/00-default
         DocumentRoot /var/www/sub-domains/00-default/html/
         CustomLog "/var/log/httpd/00-default-access_log" combined
         ErrorLog  "/var/log/httpd/00-default-error_log"
-#        Redirect / https://steven-gomez.com/
+#        Redirect / https://00-default/
 </VirtualHost>
 #<VirtualHost *:443>
-#        ServerName steven-gomez.com
+#        ServerName 00-default
 #        ServerAdmin steve.gomez.sg79@gmail.com
-#        DocumentRoot /var/www/sub-domains/steven-gomez.com/html/
+#        DocumentRoot /var/www/sub-domains/00-default/html/
 #        DirectoryIndex index.php index.htm index.html
 #        Alias /icons/ /var/www/icons/
 #
@@ -664,6 +664,7 @@ then
     CreateDefaultIndexHtml
 
     # Web Service (Apache httpd) should now be running
+    # http://<server-name> will show 'Access Forbidden' page.
 
     InstallDataBase
     InstallPhp
