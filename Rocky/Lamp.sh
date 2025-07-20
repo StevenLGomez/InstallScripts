@@ -141,6 +141,11 @@ function InstallApache
     sudo mkdir --parents /etc/httpd/sites-available /etc/httpd/sites-enabled
     sudo mkdir /var/www/sub-domains/
 
+    # Include 'sites-enabled' in Apache's main configuration file
+    sudo echo '' >> /etc/httpd/conf/httpd.conf
+    sudo echo 'Include /etc/httpd/sites-enabled' >> /etc/httpd/conf/httpd.conf
+    sudo echo '' >> /etc/httpd/conf/httpd.conf
+
     echo "Function: InstallApache complete"
 }
 # ------------------------------------------------------------------------
@@ -303,13 +308,41 @@ function ConfigureFirewall
 # ------------------------------------------------------------------------
 
 ##########################################################################
-# DEPRECATE - Use default landing page provided by OS
+# Create a default landing page for Apache
+# NOTE that this page will be the default when other multi-site pages fail.
+#
 function CreateDefaultIndexHtml
 {
     echo "Function: CreateDefaultLandingPage starting"
 
+    # Add the subdirectories needed for site (and its associated keys ??)
+    sudo mkdir --parents /var/www/sub-domains/00-default/html
+    # sudo mkdir --parents /var/www/sub-domains/00-default/ssl/{ssl.key,ssl.crt,ssl.csr}
+
+    # Create the multi site configuration file
+cat << EOF > /etc/httpd/sites-available/00-default
+<VirtualHost *:80>
+        ServerName 00-default
+        ServerAdmin steve.gomez.sg79@gmail.com
+        DocumentRoot /var/www/sub-domains/00-default/html/
+        CustomLog "/var/log/httpd/00-default-access_log" combined
+        ErrorLog  "/var/log/httpd/00-default-error_log"
+#        Redirect / https://steven-gomez.com/
+</VirtualHost>
+#<VirtualHost *:443>
+#        ServerName steven-gomez.com
+#        ServerAdmin steve.gomez.sg79@gmail.com
+#        DocumentRoot /var/www/sub-domains/steven-gomez.com/html/
+#        DirectoryIndex index.php index.htm index.html
+#        Alias /icons/ /var/www/icons/
+#
+#        TBD
+#
+#</VirtualHost>
+EOF
+
     # Make a test landing page
-cat << EOF > /var/www/sub-domains/steven-gomez.com/html/index.html
+cat << EOF > /var/www/sub-domains/00-default/html/index.html
 <html>
   <head>
     <title>Access Forbidden</title>
@@ -322,20 +355,8 @@ cat << EOF > /var/www/sub-domains/steven-gomez.com/html/index.html
 </html>
 EOF
 
-#    echo '' > /var/www/html/index.html          
-#    echo '<html>' >> /var/www/html/index.html          
-#    echo '  <head>' >> /var/www/html/index.html          
-#    echo '    <title>Apache Server Test Page</title>' >> /var/www/html/index.html          
-#    echo '  </head>' >> /var/www/html/index.html          
-#    echo '' >> /var/www/html/index.html          
-#    echo '  <body>' >> /var/www/html/index.html          
-#    echo '    <h1>LAMP Stack is alive & well on Rocky Linux 9</h1>' >> /var/www/html/index.html          
-#    echo '  </body>' >> /var/www/html/index.html          
-#    echo '' >> /var/www/html/index.html          
-#    echo '</html>' >> /var/www/html/index.html          
-#    echo '' >> /var/www/html/index.html          
-#
-#    chown apache:apache /var/www/html/index.html
+    # This line makes this site live by making it visible in sites-enabled
+    ln -s /etc/httpd/sites-available/00-default /etc/httpd/sites-enabled/
 
     echo "Function: CreateDefaultLandingPage complete"
 }
@@ -637,7 +658,10 @@ then
 
     InstallApache
     ConfigureFirewall
-    # CreateDefaultIndexHtml
+
+    exit
+
+    CreateDefaultIndexHtml
 
     # Web Service (Apache httpd) should now be running
 
@@ -654,9 +678,9 @@ then
     echo "=================== Adding Multi Site Support ==========================================="
     echo "========================================================================================="
 
-    ConfigureMultiSiteDirectories
-    ConfigureSiteA
-    ConfigureSiteB  
+    # ConfigureMultiSiteDirectories
+    # ConfigureSiteA
+    # ConfigureSiteB  
 
 fi
 
