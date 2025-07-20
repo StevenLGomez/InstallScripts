@@ -9,7 +9,6 @@
 # Load SSL modules in /etc/httpd/conf/httpd.conf per examples below
 # See: https://computingforgeeks.com/install-apache-with-ssl-http2-on-rhel-centos/
 #
-# systemctl restart httpd.service
 
 ###  For Database - MariaDB
 # Configuration notes
@@ -70,47 +69,6 @@
 # Log in using your database credentials - use root password set with mysql-secure-installation
 #
 
-##
-## Then restart Apache again with:
-## systemctl restart httpd.service
-##
-## Also set up Web Server Authentication Gate and .htaccess file per:
-## https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-phpmyadmin-with-apache-on-a-centos-7-server
-
-### For WordPress ########################################################
-# See: https://wordpress.org
-#
-# Create the necessary database entries using:
-#     mysql -u root -p                 <<== Use root password entered in mysql_secure_installation
-#     CREATE DATABASE wordpress_db;
-#     GRANT ALL PRIVILEGES ON wordpress_db.* TO wp_user@localhost IDENTIFIED BY 'secret-pwd';
-#     FLUSH PRIVILEGES;
-#
-#     # To test the above:
-#     SHOW GRANTS FOR wp_user@localhost;
-#
-#     # To back out mistakes that may have been made...
-#     DROP USER wp_user@localhost
-#     DROP DATABASE wp_db;
-#
-#     exit;          <<== To return to shell
-#
-# SELinux Alerts - On Rocky 9 needed to update security settings
-#
-# * Allow php-fpm to have write access on the wordpress directory *
-# semanage fcontext -a -t httpd_sys_rw_content_t 'wordpress'
-# restorecon -v 'wordpress'
-#
-# * If you want to allow httpd to 'unified' *
-# setsebool -P httpd_unified 1
-#
-# * If you believe that php-fpm should be allowd write access on the wordpress directory by default *
-# !! You should report this as a bug !!
-# ausearch -c 'php-fpm' --raw | audit2allow -M my-phpfpm
-# semodule -X 300 -i my-phpfpm.pp
-#
-
-
 ##########################################################################
 ##########################################################################
 ##########################################################################
@@ -120,10 +78,6 @@
 # 20250707 - Modifying to:
 #            NOT install WordPress
 #            Minor updates to PHP installation 
-
-# Download (wget) the latest version directly from the wordpress.org
-WORDPRESS_PKG=latest.tar.gz
-WORDPRESS_URL=https://wordpress.org/${WORDPRESS_PKG}
 
 PHP_MYADMIN_VER=5.2.2
 PHP_MYADMIN_URL=https://files.phpmyadmin.net/phpMyAdmin/${PHP_MYADMIN_VER}/phpMyAdmin-${PHP_MYADMIN_VER}-english.tar.gz
@@ -166,6 +120,7 @@ function InstallBasicPackages
 
 ##########################################################################
 # Install and setup Apache
+# From: https://docs.rockylinux.org/books/web_services/021-web-servers-apache/
 #
 function InstallApache
 {
@@ -180,12 +135,19 @@ function InstallApache
     # The following shows the status of httpd.service
     sudo systemctl is-enabled httpd
 
+    # Create subdirectories for Multi Site support
+    # The actual configuration files will be in /etc/httpd/sites-available but 
+    # you will symlink to them in /etc/httpd/sites-enabled.
+    sudo mkdir --parents /etc/httpd/sites-available /etc/httpd/sites-enabled
+    sudo mkdir /var/www/sub-domains/
+
     echo "Function: InstallApache complete"
 }
 # ------------------------------------------------------------------------
 
 ##########################################################################
 # Install and setup MariaDB
+# From: https://docs.rockylinux.org/guides/database/database_mariadb-server/
 #
 function InstallDataBase
 {
@@ -204,24 +166,19 @@ function InstallDataBase
 
 ##########################################################################
 # Install PHP
-# From: (DEPRECATED) https://linuxcapable.com/how-to-install-php-on-rocky-linux/
+# From: https://docs.rockylinux.org/guides/web/php/
+#       Use Remi repository to get PHP 8.4 (8.5 still in beta)
 #
 function InstallPhp
 {
     echo "Function: InstallPhp starting"
 
-    # https://docs.rockylinux.org/guides/web/apache-sites-enabled/
-    # Per Rocky docs noted above, it is no longer necessary to pull from Fedora.
-    # You can just install php. 
+    # Install Remi repositories
+    sudo dnf install https://rpms.remirepo.net/enterprise/remi-release-10.rpm
+    sudo dnf config-manager --set-enabled remi
+    sudo dnf module enable php:remi-8.4
 
-    # Install EPEL repositories
-    # sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
-    #     https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
-
-    # sudo dnf install -y dnf-utils http://rpms.remirepo.net/enterprise/remi-release-9.rpm
-    # sudo dnf module enable php:remi-8.4 -y
-
-    # Apache (httpd) PHP Installation, and extra packages
+    # PHP Installation, and extra packages
     sudo dnf install -y php 
     sudo dnf install -y php-cli php-fpm php-curl php-mysqlnd php-gd php-opcache php-zip \
         php-common php-bcmath php-imagick php-xmlrpc php-json php-readline \
@@ -239,16 +196,13 @@ function InstallPhp
     # Install connector & start PHP connection to Apache
     sudo dnf -y install php-fpm
     sudo systemctl enable --now php-fpm
+    sudo systemctl status php-fpm
 
     # Show php version
     php --version
 
     # Show active PHP modules
     php --modules
-
-    # DEPRECATE - Create dummy php test page
-    echo "<?php phpinfo(); ?>" > /var/www/html/info.php
-    chown apache:apache /var/www/html/info.php
 
     echo "Function: InstallPhp complete"
 }
@@ -327,31 +281,6 @@ function InstallPhpMyAdmin
 # ------------------------------------------------------------------------
 
 ##########################################################################
-#
-function InstallWordPress
-{
-    echo "Function: InstallWordPress starting"
-
-    # Download the installation package directly from the Wordpress site.
-    wget --no-check-certificate ${WORDPRESS_URL} --directory-prefix /var/www/html
-
-    cd /var/www/html
-    tar -xvf ${WORDPRESS_PKG}
-
-    chown -R apache:apache /var/www/html/wordpress  
-
-    # Remove the original file after extracting
-    rm -f ${WORDPRESS_PKG}
-    cd
-
-# After the script has finished, use the WEB installer to complete installation.
-# Seems appropriate because of the KEYs & SALTs.
-#
-    echo "Function: InstallWordPress complete"
-}
-# ------------------------------------------------------------------------
-
-##########################################################################
 function ConfigureFirewall
 {
     echo "Function: ConfigureFirewall starting"
@@ -379,20 +308,34 @@ function CreateDefaultIndexHtml
 {
     echo "Function: CreateDefaultLandingPage starting"
 
-    echo '' > /var/www/html/index.html          
-    echo '<html>' >> /var/www/html/index.html          
-    echo '  <head>' >> /var/www/html/index.html          
-    echo '    <title>Apache Server Test Page</title>' >> /var/www/html/index.html          
-    echo '  </head>' >> /var/www/html/index.html          
-    echo '' >> /var/www/html/index.html          
-    echo '  <body>' >> /var/www/html/index.html          
-    echo '    <h1>LAMP Stack is alive & well on Rocky Linux 9</h1>' >> /var/www/html/index.html          
-    echo '  </body>' >> /var/www/html/index.html          
-    echo '' >> /var/www/html/index.html          
-    echo '</html>' >> /var/www/html/index.html          
-    echo '' >> /var/www/html/index.html          
+    # Make a test landing page
+cat << EOF > /var/www/sub-domains/steven-gomez.com/html/index.html
+<html>
+  <head>
+    <title>Access Forbidden</title>
+  </head>
 
-    chown apache:apache /var/www/html/index.html
+  <body>
+    <h2>Access Permission Denied</h2>
+  </body>
+
+</html>
+EOF
+
+#    echo '' > /var/www/html/index.html          
+#    echo '<html>' >> /var/www/html/index.html          
+#    echo '  <head>' >> /var/www/html/index.html          
+#    echo '    <title>Apache Server Test Page</title>' >> /var/www/html/index.html          
+#    echo '  </head>' >> /var/www/html/index.html          
+#    echo '' >> /var/www/html/index.html          
+#    echo '  <body>' >> /var/www/html/index.html          
+#    echo '    <h1>LAMP Stack is alive & well on Rocky Linux 9</h1>' >> /var/www/html/index.html          
+#    echo '  </body>' >> /var/www/html/index.html          
+#    echo '' >> /var/www/html/index.html          
+#    echo '</html>' >> /var/www/html/index.html          
+#    echo '' >> /var/www/html/index.html          
+#
+#    chown apache:apache /var/www/html/index.html
 
     echo "Function: CreateDefaultLandingPage complete"
 }
@@ -409,13 +352,6 @@ function CreateDefaultIndexHtml
 function ConfigureMultiSiteDirectories
 {
     echo "Function: ConfigureMultiSiteDirectories starting"
-
-    # The actual configuration files will be in /etc/httpd/sites-available but 
-    # you will symlink to them in /etc/httpd/sites-enabled.
-    # This allows a broken site to be unlinked for repair without taking down
-    # the rest.
-    sudo mkdir --parents /etc/httpd/sites-available /etc/httpd/sites-enabled
-    sudo mkdir /var/www/sub-domains/
 
     # Update Apache configuration, Include the sites-enabled path
     sudo echo '' >> /etc/httpd/conf/httpd.conf
@@ -639,19 +575,6 @@ function InstallApacheCertificates
 }
 # ------------------------------------------------------------------------
 
-##########################################################################
-function InstallNginxCertificates
-{
-    echo "Function: InstallNginxCertificates starting"
-
-    # From: https://docs.rockylinux.org/guides/security/generating_ssl_keys_lets_encrypt/
-
-    echo "Implementation pending..... , but expected to be similar to InstallApacheCertificates()"
-
-    echo "Function: InstallNginxCertificates complete"
-}
-# ------------------------------------------------------------------------
-
 # ====================================================================================
 # ====================================================================================
 # ====================================================================================
@@ -722,8 +645,6 @@ then
     InstallPhp
 
     InstallPhpMyAdmin
-
-    # InstallWordPress
 fi
 
 #  Add Multi Site Support
