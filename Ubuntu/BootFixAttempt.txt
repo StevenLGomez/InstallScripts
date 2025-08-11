@@ -1,0 +1,46 @@
+
+
+https://www.fosslinux.com/105028/the-comprehensive-guide-to-fixing-boot-problems-in-linux-mint.htm
+
+To run a file system check, you must boot into recovery mode. To do this, restart your computer and hold down the Shift key while the system is booting. This will bring up the GRUB menu, allowing you to boot into recovery mode. Once you have booted into recovery mode, select the option to run a file system check.
+
+Select a (recovery mode) option, this runs fsck. ??
+
+Reinstall your boot loader:
+To reinstall the bootloader, you must boot from a Linux Mint Live USB or CD/DVD. Once you have booted from the Live media, open a terminal and enter the following command:
+
+sudo fdisk -l
+
+This command will display a list of your hard drives and partitions. Note the partition number of your Linux Mint installation.
+
+Next, mount the Linux Mint partition by entering the following command, replacing “sdaX” with the partition number you noted earlier:
+
+sudo mount /dev/sdaX /mnt
+
+Once the partition is mounted, you need to chroot into the Linux Mint installation by entering the following command:
+
+sudo chroot /mnt
+
+This will allow you to run commands as if you were booted into the Linux Mint installation.  Now, you can reinstall the boot loader by entering the following command:
+
+For BIOS Systems:
+sudo grub-install /dev/sda
+
+For UEFI Systems:
+sudo grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=linuxmint --recheck --no-floppy
+
+Once the installation is complete, update the grub configuration by entering the following command:
+sudo update-grub
+
+Exit the chroot environment by entering the following command:
+exit
+
+Unmount:
+sudo umount /mnt
+
+Restart your computer and check if the boot problem has been resolved. Reinstalling the bootloader can be a complex process, so follow these steps carefully and make backups of your important data before proceeding.
+
+
+
+
+
