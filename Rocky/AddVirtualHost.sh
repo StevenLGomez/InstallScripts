@@ -64,9 +64,8 @@ cat << EOF > ${AVAILABLE_PATH}/${SERVER_NAME}
 #        SSLProtocol all -SSLv2 -SSLv3 -TLSv1
 #        SSLHonorCipherOrder on
 #
-#        SSLCertificateFile /etc/letsencrypt/live/${SERVER_NAME}/fullchain1.pem
-#        SSLCertificateKeyFile /etc/letsencrypt/live/${SERVER_NAME}/privkey1.pem
-#        SSLCertificateChainFile /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem
+#        SSLCertificateFile /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem
+#        SSLCertificateKeyFile /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem
 #
 #        <Directory ${SUBDOMAIN_PATH}/${SERVER_NAME}/html>
 #                Options -ExecCGI -Indexes
