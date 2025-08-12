@@ -130,10 +130,8 @@ function InstallApache
     # Install apache & SSL support, NOTE mod_md is REQUIRED for letsenctypt 
     sudo dnf install -y httpd mod_ssl mod_md openssl nmap
 
-    # systemctl start httpd
+    # Start httpd & check status
     sudo systemctl enable --now httpd
-
-    # The following shows the status of httpd.service
     sudo systemctl is-enabled httpd
 
     # Create subdirectories for Multi Site support
@@ -292,12 +290,11 @@ function ConfigureFirewall
     echo "Function: ConfigureFirewall starting"
 
     # Open firewall for http (consider removing this one after https/ssl is configured)
-    # firewall-cmd --permanent --zone=public --add-service=http
-    firewall-cmd --permanent --add-port=80/tcp
+    firewall-cmd --permanent --zone=public --add-service=http
+    firewall-cmd --permanent --zone=public --add-service=https
 
-    # Open firewall for https
-    firewall-cmd --permanent --add-port=443/tcp
-    # firewall-cmd --permanent --zone=public --add-service=https
+    # firewall-cmd --permanent --add-port=80/tcp
+    # firewall-cmd --permanent --add-port=443/tcp
 
     firewall-cmd --reload
 
@@ -657,8 +654,8 @@ then
     PerformUpdate
     InstallBasicPackages
 
-    InstallApache
     ConfigureFirewall
+    InstallApache
 
     exit
 
