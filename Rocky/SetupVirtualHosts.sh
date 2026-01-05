@@ -1,5 +1,6 @@
 
 # https://www.devtutorial.io/how-to-set-up-apache-virtual-host-on-rocky-linux-9-p3346.html
+# https://httpd.apache.org/docs/2.4/ssl/ssl_howto.html
 
 sudo dnf update # May need to add --allowerasing if version collision is encountered
 sudo mkdir /var/www/html/example
@@ -26,7 +27,10 @@ sudo nano /etc/httpd/conf.d/example.conf
 # Add the following configuration.  Replace "example.com" with your
 # desired comain or subdomain.
 
+# *******************************************************************
+# *******************************************************************
 # For steven-gomez.com /etc/httpd/conf.d/steven-gomez.conf
+# WITHOUT SSL *******************************************************
 
 <VirtualHost *:80>
     ServerAdmin webmaster@steven-gomez.com
@@ -43,10 +47,56 @@ sudo nano /etc/httpd/conf.d/example.conf
     </Directory>
 </VirtualHost>
 
-# For gomez.engineering /etc/httpd/conf.d/gomez-engineering.conf
+# WITH SSL **********************************************************
 
 <VirtualHost *:80>
-    ServerAdmin webmaster@steven-gomez.com
+        ServerName steven-gomez.com
+        ServerAdmin steve.gomez.sg79@gmail.com
+        #Redirect / https://steven-gomez.com/
+</VirtualHost>
+<Virtual Host *:443>
+        ServerName steven-gomez.com
+        ServerAdmin steve.gomez.sg79@gmail.com
+        DocumentRoot /var/www/html/steven-gomez
+        DirectoryIndex index.php index.htm index.html
+        Alias /icons/ /var/www/icons/
+        # ScriptAlias /cgi-bin/ /var/www/sub-domains/com.yourdomain.www/cgi-bin/
+
+        CustomLog "/var/log/httpd/com.steven-gomez.www-access_log" combined
+        ErrorLog  "/var/log/httpd/com.steven-gomez.www-error_log"
+
+        SSLEngine on
+        SSLProtocol all -SSLv2 -SSLv3 -TLSv1
+        SSLHonorCipherOrder on
+#        SSLCipherSuite EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384
+#:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS
+
+        #SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:ECDHE-RSA-AES128-SHA:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4
+
+        #SSLCipherSuite RC4-SHA:AES128-SHA:HIGH:!aNULL:!MD5
+
+        SSLCertificateFile /etc/letsencrypt/live/gomez.engineering/fullchain.pem
+        SSLCertificateKeyFile /etc/letsencrypt/live/gomez.engineering/privkey.pem
+
+        <Directory /var/www/html/steven-gomez>
+                Options -ExecCGI -Indexes
+                AllowOverride None
+
+                Order deny,allow
+                Deny from all
+                Allow from all
+
+                Satisfy all
+        </Directory>
+</VirtualHost>
+
+# *******************************************************************
+# *******************************************************************
+# For gomez.engineering /etc/httpd/conf.d/gomez-engineering.conf
+# WITHOUT SSL *******************************************************
+
+<VirtualHost *:80>
+    ServerAdmin steve.gomez.sg79@gmail.com
     ServerName gomez.engineering
     DocumentRoot /var/www/html/gomez-engineering
 
@@ -60,10 +110,54 @@ sudo nano /etc/httpd/conf.d/example.conf
     </Directory>
 </VirtualHost>
 
+# WITH SSL **********************************************************
 
+<VirtualHost *:80>
+        ServerName gomez.engineering
+        ServerAdmin steve.gomez.sg79@gmail.com
+        #Redirect / https://gomez.engineering/
+</VirtualHost>
+<VirtualHost *:443>
+        ServerName gomez.engineering
+        ServerAdmin steve.gomez.sg79@gmail.com
+        DocumentRoot /var/www/html/gomez-engineering
+        DirectoryIndex index.php index.htm index.html
+        Alias /icons/ /var/www/icons/
+        # ScriptAlias /cgi-bin/ /var/www/sub-domains/com.yourdomain.www/cgi-bin/
+
+        CustomLog "/var/log/httpd/com.gomez-engineering.www-access_log" combined
+        ErrorLog  "/var/log/httpd/com.gomez-engineering.www-error_log"
+
+        SSLEngine on
+        SSLProtocol all -SSLv2 -SSLv3 -TLSv1
+        SSLHonorCipherOrder on
+#        SSLCipherSuite EECDH+ECDSA+AESGCM:EECDH+aRSA+AESGCM:EECDH+ECDSA+SHA384:EECDH+ECDSA+SHA256:EECDH+aRSA+SHA384
+#:EECDH+aRSA+SHA256:EECDH+aRSA+RC4:EECDH:EDH+aRSA:RC4:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS
+        
+        # SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:ECDHE-RSA-AES128-SHA:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4
+
+        #SSLCipherSuite RC4-SHA:AES128-SHA:HIGH:!aNULL:!MD5
+
+        SSLCertificateFile /etc/letsencrypt/live/gomez.engineering/fullchain.pem
+        SSLCertificateKeyFile /etc/letsencrypt/live/gomez.engineering/privkey.pem
+
+        <Directory /var/www/html/gomez-engineering>
+                Options -ExecCGI -Indexes
+                AllowOverride None
+
+                Order deny,allow
+                Deny from all
+                Allow from all
+
+                Satisfy all
+        </Directory>
+</VirtualHost>
 
 # Check the Apache configuration for syntax errors
 sudo apachectl configtest  # Showed warning about FQDN: Set the 'ServerName' directive globally to suppress this message
+
+# if warnings are received concerning lack of ServerName definition, edit /etc/httpd/conf/httpd.conf to set the 
+# ServerName directive to 127.0.0.1
 
 # Restart apache if no errors
 sudo systemctl restart httpd
