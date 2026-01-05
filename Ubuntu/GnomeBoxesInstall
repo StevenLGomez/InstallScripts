@@ -1,0 +1,18 @@
+
+# Contents from youtube video for starting point  
+# https://www.youtube.com/watch?v=tX2gcGRfKZc
+
+# For Ubuntu 18.04
+sudo apt install -yy ghome-boxes qemu-kvm libvirt-bin
+sudo usermod -a -G kvm $USER
+sudo sed -i -e 's/\#group\ =\ "root"/group=kvm/g' /etc/libvirt/qemu.conf
+
+# For Ubuntu 19.10
+sudo apt install -yy ghome-boxes qemu-kvm 
+sudo usermod -a -G kvm $USER
+
+# to get your Guest Additions like drivers in Boxes, install the Spice Tools inside the VM
+sudo apt install spice-vdagent spice-webdavd
+
+
+
