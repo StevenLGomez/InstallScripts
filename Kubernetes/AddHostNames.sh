@@ -9,25 +9,25 @@ function AddHostNames
 {
 echo "Function: AddHostNames"
 
-if grep -q k-master /etc/hosts; then
-    echo "k-master entry already exists in /etc/hosts (skipping)"
+if grep -q kmaster01 /etc/hosts; then
+    echo "kmaster01 entry already exists in /etc/hosts (skipping)"
 else
-    echo "Adding k-master to /etc/hosts (Kubernetes Master Node)"
-    echo '10.1.1.115     k-master  k-master.gomezengineering.lan    # Kubernetes master node' >> /etc/hosts
+    echo "Adding kmaster01 to /etc/hosts (Kubernetes Master Node)"
+    echo '10.1.1.200     kmaster01  kmaster01.gomezengineering.lan    # Kubernetes master node' >> /etc/hosts
 fi
 
-if grep -q k-node01 /etc/hosts; then
-    echo "k-node01 entry already exists in /etc/hosts (skipping)"
+if grep -q knode01 /etc/hosts; then
+    echo "knode01 entry already exists in /etc/hosts (skipping)"
 else
-    echo "Adding k-node01 to /etc/hosts (Kubernetes Worker Node 01)"
-    echo '10.1.1.116     k-node01  k-node01.gomezengineering.lan    # Kubernetes worker node 01' >> /etc/hosts
+    echo "Adding knode01 to /etc/hosts (Kubernetes Worker Node 01)"
+    echo '10.1.1.205     knode01  knode01.gomezengineering.lan    # Kubernetes worker node 01' >> /etc/hosts
 fi
 
-if grep -q k-node02 /etc/hosts; then
-    echo "k-node02 entry already exists in /etc/hosts (skipping)"
+if grep -q knode02 /etc/hosts; then
+    echo "knode02 entry already exists in /etc/hosts (skipping)"
 else
-    echo "Adding k-node02 to /etc/hosts (Kubernetes Worker Node 02)"
-    echo '10.1.1.117     k-node02  k-node02.gomezengineering.lan    # Kubernetes worker node 02' >> /etc/hosts
+    echo "Adding knode02 to /etc/hosts (Kubernetes Worker Node 02)"
+    echo '10.1.1.206     knode02  knode02.gomezengineering.lan    # Kubernetes worker node 02' >> /etc/hosts
 fi
 
 }
