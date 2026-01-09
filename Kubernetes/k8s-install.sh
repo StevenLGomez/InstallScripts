@@ -31,22 +31,25 @@ function PerformUpdate
 
 # #############################################################################
 #
-function SetPermissiveMode
+function DisableSeLinux
 {
     echo "===================================================================="
-    echo "Function: SetPermissiveMode Starting"
+    echo "Function: DisableSeLinux Starting"
     echo "===================================================================="
 
     setenforce 0
     sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
     echo "===================================================================="
-    echo "Function: SetPermissiveMode Complete"
+    echo "Function: DisableSeLinux Complete"
     echo "===================================================================="
 }
 # -----------------------------------------------------------------------------
 
 # #############################################################################
+# 
+# https://centlinux.com/install-kubernetes-on-linux/ (Rocky 9)
+#
 #
 function ConfigureSysctl
 {
@@ -57,7 +60,7 @@ function ConfigureSysctl
     # Not all examples include iproute-tc
     dnf -y install iproute-tc
 
-    # Enable kernel modules (overlay & br_netfilter
+    # Enable kernel modules (overlay & br_netfilter)
     modprobe overlay
     modprobe br_netfilter
 
@@ -79,8 +82,8 @@ EOF
     # Create config file to enable Bridge Networking (net.bridge)
 # setting up kernel parameters via config file
 cat > /etc/sysctl.d/k8s.conf <<EOF
-net.ipv4.ip_forward = 1
 net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 
@@ -475,6 +478,11 @@ function Spare_Function
 # Supported options defined in if statement below
 #
 
+# Echo basic system information
+cat /etc/rocky-release
+uname -r
+sleep 5
+
 if [ -z "$1" ]
 then
     echo "ERROR: Missing parameter - must specify CONTROL or WORKER node"
@@ -504,13 +512,12 @@ fi
 
 echo "Applying NODE_TYPE:  ${NODE_TYPE}"
 
-
 echo "===================================================================="
 echo "Performing tasks required by all nodes"
 echo "===================================================================="
 
 PerformUpdate           # Some references recommend reboot after this step
-SetPermissiveMode       # Disables SELinux
+DisableSeLinux       # Disables SELinux
 DisableSwap             # Disables Swap
 ConfigureSysctl
 ConfigureFirewall
