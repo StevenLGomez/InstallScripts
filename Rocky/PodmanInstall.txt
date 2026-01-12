@@ -6,7 +6,12 @@
 # 250 GB Drive
 
 sudo dnf -y update
-sudo dnf -y install podman gnome-tweaks
+
+# Start with turning on the minimize & maximize buttons
+# From: https://bonguides.com/enable-minimize-and-maximize-buttons-on-almalinux-or-rocky-linux-8/
+gsettings set org.gnome.desktop.wm.preferences button-layout ":minimize,maximize,close"
+
+sudo dnf -y install podman 
 podman --version
 
 # Test using:
