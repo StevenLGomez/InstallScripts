@@ -17,31 +17,21 @@ podman --version
 # Test using:
 # podman run hello-world
 
-# Additional Configuration
+# Additional Podman Configuration
 # Podman configurations can be found in the /etc/containers directory.
 # Key files include:
-#     policy.json: For image signing policies
+#     policy.json:     For image signing policies
 #     registries.conf: Lists available container image registries
-#     storage.conf: Configures defalt storage settings
+#     storage.conf:    Configures defalt storage settings
 
 # Install Podman Desktop -- Flatpak steps continued to fail ?????
-sudo yum install flatpak
+# flatpak is installed by default on Rocky 10, but can be installed using sudo dnf install flatpak
 flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 flatpak install --user flathub io.podman_desktop.PodmanDesktop
 
 # To run Podman Desktop:
-flatpak run io.podman_desktop.PodmanDesktop
+Use OS start menu & type "Podma..." 
 
 # To update Podman Desktop
 flatpak update --user io.podman_desktop.PodmanDesktop
-
-# Download from podman.io - podman-desktop-1.24.2.tar.gz
-mkdir ~/bin
-mv ~/Downloads/podman-..... ~/bin
-cd ~/bin
-tar -xvf podman-....
-
-~/bin/podman-...../podman-desktop &
-
-
 
