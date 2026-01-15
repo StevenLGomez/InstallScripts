@@ -9,90 +9,49 @@
 # Running script with no parameters will display the supported options
 
 # ########################################################################
-# Add host names that are included in BMX DNS lookup tables
-# For use with systems that cannot reach DNS servers.
-function AddCommonHostNames
+# Add host names for development systems (not commonly used by everyone)
+function AddCorporateHostNames
 {
-    if grep -q usstlsvn02 /etc/hosts; then
-	echo "usstlsvn02 entry already exists in /etc/hosts (skipping)"
-    else
-	echo "Adding usstlsvn02 to /etc/hosts"
-	echo '10.1.1.6     usstlsvn02  usstlsvn02.corp.internal # Main Subversion Server' >> /etc/hosts
-    fi
-
-    if grep -q usstlbas02 /etc/hosts; then
-	echo "usstlbas02 entry already exists in /etc/hosts (skipping)"
-    else
-	echo "Adding usstlbas02 to /etc/hosts"
-	echo '10.1.1.10    usstlbas02  usstlbas02.corp.internal # TeamCity Server' >> /etc/hosts
-    fi
-
-    if grep -q usstllic01 /etc/hosts; then
-	echo "usstllic01 entry already exists in /etc/hosts (skipping)"
-    else
-	echo "Adding usstllic01 to /etc/hosts"
-	echo '10.1.1.13    usstllic01  usstllic01.corp.internal # License Server (W7)' >> /etc/hosts
-    fi
-
-    if grep -q usstlgit03 /etc/hosts; then
-	echo "usstlgit03 entry already exists in /etc/hosts (skipping)"
-    else
-	echo "Adding usstlgit03 to /etc/hosts"
-	echo '10.1.1.23    usstlgit03  usstlgit03.corp.internal # Production Git Server (Atlassian Bitbucket on RHEL 7)' >> /etc/hosts
-    fi
-
-    if grep -q sonarqube /etc/hosts; then
-	echo "sonarqube entry already exists in /etc/hosts (skipping)"
-    else
-	echo "Adding sonarqube to /etc/hosts"
-	echo '10.1.1.29    sonarqube   sonarqube.corp.internal # SonarQube Server' >> /etc/hosts
-    fi
-
-    if grep -q usstlweb02 /etc/hosts; then
-	echo "usstlweb02 entry already exists in /etc/hosts (skipping)"
-    else
-	echo "Adding usstlweb02 to /etc/hosts"
-	echo '10.1.1.62    usstlweb02   usstlweb02.corp.internal # Engineering Web Server' >> /etc/hosts
-    fi
+	echo "Deprecated"
 }
 # ====================================================================================
 
 
 
 # ########################################################################
-# Add host names for development systems (not commonly used by everyone)
+# Add host names for common  systems
 #
-function AddDevelopmentHostNames
+function AddCommonHostNames
 {
-    if grep -q usstlsvn01 /etc/hosts; then
-	echo "usstlsvn01 entry already exists in /etc/hosts (skipping)"
+    if grep -q porker /etc/hosts; then
+	echo "porker entry already exists in /etc/hosts (skipping)"
     else
-	echo "Adding usstlsvn01 to /etc/hosts"
-	echo '10.1.1.5     usstlsvn01  usstlsvn01.corp.internal # Dev Subversion Server' >> /etc/hosts
+	echo "Adding porker to /etc/hosts"
+	echo '10.1.1.4     porker  porker.corp.internal # ReadyNAS' >> /etc/hosts
     fi
 
-    if grep -q usstlbas01 /etc/hosts; then
-	echo "usstlbas01 entry already exists in /etc/hosts (skipping)"
+    if grep -q apollo /etc/hosts; then
+	echo "apollo entry already exists in /etc/hosts (skipping)"
     else
-	echo "Adding usstlbas01 to /etc/hosts"
-	echo '10.1.1.9    usstlbas01  usstlbas01.corp.internal # TeamCity Server' >> /etc/hosts
+	echo "Adding apollo to /etc/hosts"
+	echo '10.1.1.7     apollo  apollo.corp.internal # ESXI - Virtual machines' >> /etc/hosts
     fi
 
-    if grep -q usstlbus01 /etc/hosts; then
-	echo "usstlbus01 entry already exists in /etc/hosts (skipping)"
+    if grep -q devserver /etc/hosts; then
+	echo "devserver entry already exists in /etc/hosts (skipping)"
     else
-	echo "Adding usstlbus01 to /etc/hosts"
-	echo '10.1.1.70   usstlbus01  usstlbus01.corp.internal # TeamCity Server' >> /etc/hosts
+	echo "Adding devserver to /etc/hosts"
+	echo '10.1.1.20    devserver  devserver.corp.internal # TeamCity Server' >> /etc/hosts
     fi
 
-    if grep -q usstlweb01 /etc/hosts; then
-	echo "usstlweb01 entry already exists in /etc/hosts (skipping)"
+    if grep -q hermes /etc/hosts; then
+	echo "hermes entry already exists in /etc/hosts (skipping)"
     else
-	echo "Adding usstlweb01 to /etc/hosts"
-	echo '10.1.1.61    usstlweb01   usstlweb01.corp.internal # Engineering Web Server' >> /etc/hosts
+	echo "Adding hermes to /etc/hosts"
+	echo '10.1.1.21    hermes  hermes.corp.internal # TeamCity Server' >> /etc/hosts
     fi
-
 }
+
 # ====================================================================================
 
 
@@ -148,27 +107,28 @@ then
     echo "ERROR: Missing parameter - must specify which group of hosts to add"
     echo ""
     echo "Supported Host Groups:"
-    echo "    COMMON        Adds information for common systems (that are also in IS DNS tables)  "
-    echo "    DEVELOPMENT   Adds development systems (systems that are NOT in the IS DNS tables)  "
+    echo "    CORPORATE        Adds information for development systems  "
+    echo "    COMMON   Add common systems "
     echo "    KUBERNETES    Adds Kubernetes cluster nodes                                         "
     echo ""
-    echo "Usage: $0 COMMON || DEVELOPMENT || KUBERNETES "
+    echo "Usage: $0 CORPORATE || COMMON || KUBERNETES "
     exit
 fi
 
 # Echo the valid command line entry
 echo $0 $1
 
+if [ "$1" = "CORPORATE" ]
+then
+    echo "Addming CORPORATE system information to hosts file"
+    echo "DEPRECATED - Corporate configuration carry over"
+    # AddDevelopmentHostNames
+fi
+
 if [ "$1" = "COMMON" ]
 then
     echo "Addming COMMON system information to hosts file"
     AddCommonHostNames
-fi
-
-if [ "$1" = "DEVELOPMENT" ]
-then
-    echo "Addming DEVELOPMENT system information to hosts file"
-    AddDevelopmentHostNames
 fi
 
 if [ "$1" = "KUBERNETES" ]
