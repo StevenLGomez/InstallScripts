@@ -27,7 +27,15 @@ podman --version
 # Install Podman Desktop -- Flatpak steps continued to fail ?????
 # flatpak is installed by default on Rocky 10, but can be installed using sudo dnf install flatpak
 flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak install --user flathub io.podman_desktop.PodmanDesktop
+
+# If Podman Desktop fails, run:
+flatpak install flathub org/freedesktop.Platform/x86_64/25.08
+
+# flatpak install --user flathub io.podman_desktop.PodmanDesktop
+# -OR-
+# Download from Podman.io, then 
+cd Downloads
+flatpak install --user podman-desktop-....
 
 # To run Podman Desktop:
 Use OS start menu & type "Podma..." 
