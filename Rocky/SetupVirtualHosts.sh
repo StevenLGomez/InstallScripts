@@ -1,4 +1,13 @@
 
+# 20260207 Documentation update
+# https://docs.rockylinux.org/10/guides/web/apache-sites-enabled/
+
+# sudo chown -R root:apache /var/www/sub-domains/
+# sudo chgrp -R apache /var/www/sub-domains/
+# sudo usermod -a -G apache $USER
+# sudo chmod -R 775 /var/www/sub-domains
+
+# Older information
 # https://www.devtutorial.io/how-to-set-up-apache-virtual-host-on-rocky-linux-9-p3346.html
 # https://httpd.apache.org/docs/2.4/ssl/ssl_howto.html
 
@@ -127,7 +136,7 @@ sudo nano /etc/httpd/conf.d/example.conf
 
         CustomLog "/var/log/httpd/com.gomez-engineering.www-access_log" combined
         ErrorLog  "/var/log/httpd/com.gomez-engineering.www-error_log"
-
+https://docs.rockylinux.org/10/guides/web/apache-sites-enabled/
         SSLEngine on
         SSLProtocol all -SSLv2 -SSLv3 -TLSv1
         SSLHonorCipherOrder on
@@ -173,7 +182,7 @@ sudo systemctl restart httpd
 # NOTE  Apache uses the first virtual host found in the configuration also for
 #       requests that do not match any domain set in the ServerName and
 #       ServerAlias parameters. This also includes requests sent to the IP
-#       address of the server.
+#       address of the server.https://docs.rockylinux.org/10/guides/web/apache-sites-enabled/
 #
 function ConfigureMultiSiteDirectories
 {
