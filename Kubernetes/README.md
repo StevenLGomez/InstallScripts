@@ -8,10 +8,10 @@ The Red Hat stack has been chosen primarily because it uses CRI-O as the contain
 
 ```
 # ======== VM Configuration ========
-hostname        IPa                  IPb
-k-master    10.17.20.122          10.1.1.115
-k-node01    10.17.20.123          10.1.1.116
-k-node02    10.17.20.124          10.1.1.117
+hostname    IP Address (statically assigned to VMs MAC address on router)
+k-master    10.1.1.115
+k-node01    10.1.1.116
+k-node02    10.1.1.117
 
 CPU   4
 RAM   8 GB
@@ -26,11 +26,10 @@ passwd admin
 usermod -aG wheel admin
 su - admin (Confirm sudo works)
 
-# ==================================
-
 Prior to running the installation script on the VMs noted above, 
 make sure /etc/hosts has static IP entries on all VMs.
 ```
+# ==================================
 
 ### Post install message from k-master
 
