@@ -27,9 +27,13 @@ APPLICATION_SERVER_URL=http://10.1.1.20/Applications
 #SONAR_SCANNER_URL=R{PACKAGE_URL}/Packages/SonarQube/${SONAR_SCANNER_ZIP}
 #SONAR_SCANNER_DIR=sonar-scanner-${SONAR_VER}-linux
 
+# TODO - Modify to use direct download from doxygen.nl site
+# https://www.doxygen.nl/files/doxygen-1.18.0.src.tar.gz
 DOXYGEN_VER=1.18.0
 DOXYGEN=doxygen-${DOXYGEN_VER}.src.tar.gz
 DOXYGEN_URL=${APPLICATION_URL}/Doxygen/${DOXYGEN}
+
+TEAMCITY_SERVER=http://10.1.1.30:8111
 
 ##########################################################################
 # Install additional repositories to assist with virtualization support
@@ -68,7 +72,7 @@ function DisableSELinux
 function InstallDevelopmentApplications
 {
     echo "Function: InstallDevelopmentApplications"
-    dnf -y install subversion git
+    dnf -y install subversion git wget
 
     # Install development & test support items
     dnf -y groupinstall "Development Tools"
@@ -127,6 +131,44 @@ function InstallMingw32
 }
 # ------------------------------------------------------------------------
 
+##########################################################################
+# Install TeamCity Build Agent - instructions from duck.ai 
+function InstallTeamCityBuildAgent
+{
+    # Install java
+    dnf install -y java-11-openjdk
+    java -version
+
+    # Create directory structure for agent, then download ZIP from TC Server
+    mkdir --parents /opt/teamcity-agent
+    cd /opt/teamcity-agent
+    wget $TEAMCITY_SERVER/update/buildAgent.zip
+
+    # Display what was downloaded, then unzip it
+    ls -al
+    unzip buildAgent.zip
+
+    # After the above, edit conf/buildAgent.properties
+    # serverUrl=$TEAMCITY_SERVER  << Expand manually
+    # name=<MY-AGENT>
+    # workDir=../work
+    # tempDir=../temp
+    # systemDir=../system
+
+    # Start the agent 
+    # bin/agent.sh start
+
+    # Authorize the agent on TC Server
+    # Agents -> Unauthorized
+
+    # Check logs
+    # tail -f logs/teamcity-agent.log
+}
+# ------------------------------------------------------------------------
+
+
+
+
 # ====================================================================================
 # ====================================================================================
 # ====================================================================================
@@ -154,4 +196,6 @@ InstallDevelopmentApplications
 # InstallPythonExtensions
 # InstallCPPUnit
 # InstallMingw32
+
+InstallTeamCityBuildAgent
 
