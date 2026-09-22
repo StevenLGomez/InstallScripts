@@ -51,24 +51,6 @@ function PerformUpdate
 # ------------------------------------------------------------------------
 
 ##########################################################################
-# Install Dynamic Kernel Module Support (Mandatory for VBox Guest Additions, helpful for VMware)
-function InstallDKMS
-{
-    echo "Function: InstallDKMS"
-    dnf -y --enablerepo=epel install dkms
-}
-# ------------------------------------------------------------------------
-
-##########################################################################
-# Install Dynamic Kernel Module Support (Mandatory for VBox Guest Additions, helpful for VMware)
-function InstallFilezilla
-{
-    echo "Function: InstallFilezilla"
-    dnf -y --enablerepo=epel install filezilla
-}
-# ------------------------------------------------------------------------
-
-##########################################################################
 # Disable SELinux - seemed to help VirtualBox installations, but not recommended normally
 # The second line here keeps it disabled after reboots
 function DisableSELinux
@@ -86,9 +68,7 @@ function DisableSELinux
 function InstallDevelopmentApplications
 {
     echo "Function: InstallDevelopmentApplications"
-    dnf -y install subversion
-    dnf -y install git
-    dnf -y install gedit
+    dnf -y install subversion git
 
     # Install development & test support items
     dnf -y groupinstall "Development Tools"
@@ -100,69 +80,6 @@ function InstallDevelopmentApplications
     # NOT available: libpcap-devel
     # NOT available: python-devel
 }
-# ------------------------------------------------------------------------
-
-##########################################################################
-# Create a directory to use for mounting the host share
-# With this directory created, VMware Player VMs can mount the shared directory using
-# (as developer)  /usr/bin/vmhgfs-fuse /home/developer/HostShare 
-function CreateHostShareDirectory
-{
-    echo "Function: CreateHostShareDirectory"
-    if [ ! -d "/home/developer/HostShare" ]; then
-        echo "Creating host share directory (HostShare)"
-        mkdir /home/developer/HostShare
-        chown developer:developer /home/developer/HostShare
-    else
-        echo "HostShare directory appears to have previously been created (skipping)"
-    fi
-}
-# End of share directory creation
-# ------------------------------------------------------------------------
-
-##########################################################################
-# Check for the previous installation of Python 3.8, and if not installed,
-# create a working directory (projects), download source package from 
-# internal server, extract, configure, make, install.
-#
-# Note: Also take a peek at this website, has good explanation of ./configure
-#       that may be advisable moving forward.
-# https://danieleriksson.net/2017/02/08/how-to-install-latest-python-on-centos/
-#
-function InstallPython
-{
-    echo "Function: InstallPython"
-    if [ -f /usr/local/bin/python3.8 ]; then
-        echo "Executable for Python 3.8 already exists (skipping)"
-    else
-        echo "Python 3.8 Executable not in expected path, performing installation"
-
-        mkdir ~/projects
-        cd ~/projects
-
-        # Use wget to pull the Python package
-        wget ${PYTHON_URL}
-
-        # Unpack, configure and make Python 3.8
-        tar xzf ${PYTHON_PKG}
-        cd ~/projects/${PYTHON_SRC}
-
-        ./configure --enable-optimizations
-        make
-
-        # Install Python into /usr/local/bin
-        make altinstall
-
-        # Return to home directory and remove the Python installation directory tree
-        cd
-        rm -Rf ~/projects
-
-        # Add an alias for Python 3.8 to avoid needing to enter /usr/local/bin/python3.8
-        echo 'alias py38="/usr/local/bin/python3.8"' >> /home/developer/.bashrc  
-
-    fi
-}
-# End of Python installation section
 # ------------------------------------------------------------------------
 
 ##########################################################################
@@ -190,90 +107,23 @@ function InstallCPPUnit
 {
 echo "Function: InstallCPPUnit"
 
-    if [ -f /usr/local/lib/libcppunit.so ]; then
-    echo "CPPUnit library file already exists (skipping build/config of CPPUnit)"
-    else
-        echo "CPPUnit library file does not exist, performing installation"
-
-        # As with installing Python, create a projects directory then move into it
-        mkdir projects
-        cd projects
-
-        # CPPUnit source is kept in Subversion, check it out from:
-        svn checkout https://10.17.20.6:18080/svn/tools/tools/cppunit/trunk cppunit
-
-        cd cppunit
-
-        # This command is required to correct a configuration error in the CPPUnit source package
-        # (./configure would fail because it was not executable)
-        chmod u+x configure
-
-        # These steps configure, build, test then install CPPUnit
-        ./autogen.sh
-        ./configure
-        make
-        make check
-        make install
-
-        # Clean up after build & install process
-        cd
-        rm -Rf projects
-
-        # Make entry in developer/.bash_profile for location of cppunit library (if not already there)
-        if grep -q LD_LIBRARY_PATH /home/developer/.bash_profile; then
-            echo "LD_LIBRARY_PATH entry already exists in /home/developer/.bash_profile (skipping)"
-        else
-            echo "Adding LD_LIBRARY_PATH entry to /home/developer/.bash_profile"
-            echo '' >> /home/developer/.bash_profile
-            echo 'LD_LIBRARY_PATH=/usr/local/lib' >> /home/developer/.bash_profile
-            echo 'export LD_LIBRARY_PATH' >> /home/developer/.bash_profile
-        fi
-    fi
+    dnf install -y cppunit
+    dnf install -y cppunit-devel   # Perhaps only needed to "develop" cppunit
 }
 # End of CPPUnit installation section
 # ------------------------------------------------------------------------
 
 ##########################################################################
-# Check for existence of the Sonar Scanner on this VM and install if not already there
-function InstallSonarScanner
-{
-echo "Function: InstallSonarScanner"
-
-    if [ -f /opt/sonar-scanner-3.0.1.733-linux/conf/sonar-scanner.properties ]; then
-        echo "Sonar Scanner (configuration file) already exists (skipping)"
-    else
-    wget ${SONAR_SCANNER} --directory-prefix /opt
-        cd /opt
-        unzip sonar-scanner-cli-3.0.1.733-linux.zip
-        chown -R developer:root sonar-scanner-3.0.1.733-linux
-
-        # Add URL of sonarqube server below their example line
-        sed -i '/sonar.host.url/ a sonar.host.url=http://sonarqube:9000' sonar-scanner-3.0.1.733-linux/conf/sonar-scanner.properties
-
-        # Add source encoding definition line below their example
-        sed -i '/sonar.sourceEncoding/ a sonar.sourceEncoding=ISO8859-1' sonar-scanner-3.0.1.733-linux/conf/sonar-scanner.properties
-
-        rm sonar-scanner-cli-3.0.1.733-linux.zip
-        cd
-
-        # Add an alias for the honkin' long scanner path/command
-        echo 'alias sonarscan="/opt/sonar-scanner-3.0.1.733-linux/bin/sonar-scanner"' >> /home/developer/.bashrc  
-    fi
-}
-# End of Sonar Scanner configuration section
-# ------------------------------------------------------------------------
-
-
-##########################################################################
-# Install Mingw32 (For building Windows applications on Linux) 
-# Tutorial: https://fedoraproject.org/wiki/MinGW/Tutorial
-# Core Utilities code: https://usstlsvn02:18080/svn/vendor/GNU/coreutils
-# See: build-aux/gen-lists-of-programs.sh
+# Install MinGW-W64 (For building 32 & 64 bit Windows applications on Linux) 
+# Steps below are from duck.ai
 function InstallMingw32
 {
+    # Enable CodeReady Builder Repository
+    dnf config-manager --set-enabled crb
+    dnf install -y mingw-w64-tools
+
     # dnf -y install mingw32-gcc mingw32-libxml2 mingw32-minizip mingw32-libwebp 
     # dnf -y install mingw32-pdcurses mingw32-gcc-c++
-    dnf -y install ming32-*
 }
 # ------------------------------------------------------------------------
 
@@ -297,19 +147,11 @@ InstallDevelopmentApplications
 
 # Note that installing EPEL seems to work best BEFORE updating
 # InstallEpelRepository      # Enables the EPEL repository 
-# InstallDKMS                # REQUIRES EPEL Repository Installs DKMS (for virtualization support)
-# InstallFilezilla           # REQUIRES EPEL Repository Installs FileZilla
 
 # DisableSELinux
 
-# CreateHostShareDirectory
 
 # InstallPythonExtensions
 # InstallCPPUnit
-# InstallSonarScanner
-# InstallGoogleChrome
-InstallMingw32
-# InstallSqliteStudio
-# PrepareSlickEdit
-# UpdateEtcHosts
+# InstallMingw32
 
