@@ -11,6 +11,7 @@ sudo dnf -y update
 # From: https://bonguides.com/enable-minimize-and-maximize-buttons-on-almalinux-or-rocky-linux-8/
 gsettings set org.gnome.desktop.wm.preferences button-layout ":minimize,maximize,close"
 
+# Installed Rocky 10.2 as Workstation with Container Tools, so podman & buildah were already there.
 sudo dnf -y install podman 
 podman --version
 
@@ -24,6 +25,7 @@ podman --version
 #     registries.conf: Lists available container image registries
 #     storage.conf:    Configures defalt storage settings
 
+# Skipped ahead to downloading with web browser from https://podman-desktop.io/downloads  >>>> Skip 
 # Install Podman Desktop -- Flatpak steps continued to fail ?????
 # flatpak is installed by default on Rocky 10, but can be installed using sudo dnf install flatpak
 flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
@@ -31,11 +33,16 @@ flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/fl
 # If Podman Desktop fails, run:
 flatpak install flathub org/freedesktop.Platform/x86_64/25.08
 
+  flatpak install flathub io.podman_desktop.PodmanDesktop
 # flatpak install --user flathub io.podman_desktop.PodmanDesktop
 # -OR-
-# Download from Podman.io, then 
+
+# Download from Podman.io, then     <<<<<< to here
 cd Downloads
 flatpak install --user podman-desktop-....
+# But then had to run:
+flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+# Then redo the install step
 
 # To run Podman Desktop:
 Use OS start menu & type "Podma..." 
