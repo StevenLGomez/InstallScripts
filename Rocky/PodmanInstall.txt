@@ -47,6 +47,10 @@ flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/fl
 # To run Podman Desktop:
 Use OS start menu & type "Podma..." 
 
+When installing SlickEdit on this VM, it was necessary to run:   
+sudo dnf install libXt   
+for the SE installer to succeed.   
+
 # To update Podman Desktop
 flatpak update --user io.podman_desktop.PodmanDesktop
 
