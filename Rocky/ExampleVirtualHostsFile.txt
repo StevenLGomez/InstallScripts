@@ -260,25 +260,50 @@ systemctl enable certbot-renew.timer
 systemctl list-timers
 
 **************************************************************************
+**************************************************************************
+**************************************************************************
+**************************************************************************
 
+*** Virtual Host Setup Command History - (from dev2.sh)
 
+# Create default landing page
+sudo mkdir --parents /var/www/sub-domains/00-deault/html/index.html
+Add contents to index.html created above for a "Forbidden Page".
+# See lamp.sh - CreateDefaultIndexHtml
 
+# Create a Multi Site Config file for the "Forbidden Page".
+sudo mkdir --parents /etc/httpd/sites-available/00-default
+# See <VirtualHost> example in lamp.sh - ~line 335 
 
+# Make it visible to Apache 
+sudo ln -s /etc/httpd/sites-available/00-default /etc/httpd/sites-enabled
 
+# Add Multi Sie Search list to Apache's configuration
+# In /etc/httpd/conf/httpd.conf, add the following line at the end:
+Include /etc/httpd/sites-enabled
 
+# -- AND --
+sudo vi /etc/hosts  -->> add 127.0,0,1 <local site name>
 
+**************************************************************************
+**************************************************************************
+# Environment permission gyrations....
 
+# Some grief could have been avoided if I had first:
+sudo usermod -a -G apache $USER
 
+/var/www/subdomains (I think were root:apache)
+sudo chown -R developer:apache /var/www/sub-domains
+sudo chown -R apache /var/www/sub-domains
 
+# Restarted Apache using:
+sudo apachectl restart   --> Got "Access Permission Denied"
 
+sudo chown -R apache:apache /var/www/html/<all existing sites>
+sudo chmod -R 755 /var/www/html/<*>
+sudo chmod -R 755 /var/www/sub-domains
 
-
-
-
-
-
-
-
-
-
+# Attempt at log permission updating
+sudo chown -R apache:apache /var/log/htpd
+sudo chmod -R 755 /var/log/htpd
 
